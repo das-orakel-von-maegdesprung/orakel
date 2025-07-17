@@ -1,0 +1,6 @@
+Flask
+Flask-Cors
+requests
+python-dotenv
+rank-bm25
+pymongo

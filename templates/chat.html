@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Das Orakel von Mägdesprung</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" type="image/x-icon" href="https://das-orakel.eu/wp-content/uploads/fbrfg/favicon.ico">
+
+  <!-- Open Graph Metadata for WhatsApp -->
+  <meta property="og:image" content="https://das-orakel.eu/wp-content/uploads/2023/12/dovm_logo_black-2023.svg">
+  <meta property="og:image:type" content="image/svg+xml">
+  <meta property="og:image:width" content="882">
+  <meta property="og:image:height" content="945">
+
+  <style>
+    #chat-messages {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+    body {
+        font-family: 'Arial', 'Helvetica', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-gray-100">
+  <!-- Logo -->
+  <img decoding="async" src="https://das-orakel.eu/wp-content/uploads/2023/12/dovm_logo_black-2023.svg" 
+       alt="Logo" class="wp-image-2166" style="aspect-ratio:1;width:177px;height:auto;position: absolute;top:0px;left:0px">
+
+  <div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md">
+      <h2 class="text-xl font-semibold p-4 border-b">Chat with Groq LLaMA 3.3-70B</h2>
+
+      <div id="chat-messages" class="p-4 space-y-4">
+        {% if response %}
+          <div class="bg-gray-100 p-3 rounded">
+            <strong>Groq:</strong> <div style="white-space: pre-wrap;">{{ response }}</div>
+          </div>
+        {% endif %}
+      </div>
+
+      <form method="post" class="p-4 border-t">
+        <textarea name="message"
+                  rows="5"
+                  class="w-full p-2 border rounded resize-none"
+                  placeholder="Enter your prompt">{{ user_input }}</textarea><br><br>
+        <input type="submit" value="Send" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 cursor-pointer">
+      </form>
+    </div>
+  </div>
+</body>
+</html>
