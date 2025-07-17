@@ -29,12 +29,12 @@
 
   <div class="container mx-auto px-4 py-8">
     <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md">
-      <h2 class="text-xl font-semibold p-4 border-b">Chat with Groq LLaMA 3.3-70B</h2>
+      <h2 class="text-xl font-semibold p-4 border-b">Frage das Orakel von Mägdesprung</h2>
 
       <div id="chat-messages" class="p-4 space-y-4">
         {% if response %}
           <div class="bg-gray-100 p-3 rounded">
-            <strong>Groq:</strong> <div style="white-space: pre-wrap;">{{ response }}</div>
+            <strong>Orakel:</strong> <div style="white-space: pre-wrap;">{{ response }}</div>
           </div>
         {% endif %}
       </div>
@@ -43,8 +43,8 @@
         <textarea name="message"
                   rows="5"
                   class="w-full p-2 border rounded resize-none"
-                  placeholder="Enter your prompt">{{ user_input }}</textarea><br><br>
-        <input type="submit" value="Send" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 cursor-pointer">
+                  placeholder="Schreibe deine Frage...">{{ user_input }}</textarea><br><br>
+        <input type="submit" value="Fragen" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 cursor-pointer">
       </form>
     </div>
   </div>
