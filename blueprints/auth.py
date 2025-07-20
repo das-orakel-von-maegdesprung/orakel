@@ -34,7 +34,7 @@ def request_login():
 
     magic_link = f"{FRONTEND_URL}/magic-login/{token}"
 
-    subject = "🔐 Your Login Code for Das Orakel"
+    subject = "🔐 Login Code Orakel von Mägdesprung"
     body = f"""
 Hello,
 
