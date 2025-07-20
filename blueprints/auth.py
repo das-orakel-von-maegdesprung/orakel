@@ -15,6 +15,13 @@ def generate_code():
 def generate_token():
     return ''.join(random.choices(string.ascii_letters + string.digits, k=32))
 
+@auth_bp.route("/session", methods=["GET"])
+def session_status():
+    if "email" in session:
+        return jsonify({"status": "logged_in"})
+    return jsonify({"status": "not_logged_in"})
+
+
 @auth_bp.route("/request-login", methods=["POST"])
 def request_login():
     data = request.get_json()

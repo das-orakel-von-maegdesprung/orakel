@@ -33,6 +33,9 @@ def signup():
 def chat():
     return render_template("chat.html")
 
+@app.route("/questions", methods=["GET"])
+def questions():
+    return render_template("questions.html")
 
 @app.route("/llm", methods=["POST"])
 def llm():
