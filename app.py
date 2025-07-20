@@ -12,7 +12,7 @@ load_dotenv()
 
 app = Flask(__name__, static_url_path='', static_folder='static')
 
-CORS(app, origins=["https://das-orakel.vercel.app"], supports_credentials=True)
+CORS(app, origins=["*"], supports_credentials=True)
 
 app.secret_key = os.getenv("SECRET_KEY", "default_secret_key")
 app.permanent_session_lifetime = timedelta(days=30)
