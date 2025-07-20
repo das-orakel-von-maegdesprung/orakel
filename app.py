@@ -4,6 +4,8 @@ from database import log_chat_to_db
 
 app = Flask(__name__)
 
+app = Flask(__name__, static_url_path='', static_folder='static')
+
 @app.route("/", methods=["GET", "POST"])
 def chat():
     user_input = ""

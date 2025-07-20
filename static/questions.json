@@ -1,0 +1,9 @@
+[
+    { "question": "What is your first language?", "options": ["german","english"]},
+    { "question": "What is your belief", "options": ["Christianity", "Islam", "Buddhism", "Hinduism","Atheist", "Other"]},
+    { "question": "Is family important to you",  "options": ["Yes", "No", "Not sure"]},
+    { "question": "Do you follow your heart or your head when making decisions?",  "options": ["Heart", "Head"]},
+    { "question": "What’s more important to you—freedom or stability?",  "options": ["Freedom", "Stability"]},
+    { "question": "Do you feel more connected to the past, present, or future?",  "options": ["Past", "Present", "Future"]},
+    { "question": "When something goes wrong, do you blame yourself or circumstances?", "options": ["Yourself", "Circumstances"]}
+]
