@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, session, redirect
 from blueprints.database import users, login_tokens
-from emails import send_email
+from utils.email import send_email
 from datetime import datetime, timedelta
 import os
 import random

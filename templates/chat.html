@@ -3,50 +3,589 @@
 <head>
   <meta charset="UTF-8">
   <title>Das Orakel von Mägdesprung</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" type="image/x-icon" href="https://das-orakel.eu/wp-content/uploads/fbrfg/favicon.ico">
-
+  
   <!-- Open Graph Metadata for WhatsApp -->
   <meta property="og:image" content="https://das-orakel.eu/wp-content/uploads/2023/12/dovm_logo_black-2023.svg">
   <meta property="og:image:type" content="image/svg+xml">
   <meta property="og:image:width" content="882">
   <meta property="og:image:height" content="945">
-
+  
   <style>
-    #chat-messages {
-        max-height: 500px;
-        overflow-y: auto;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
+
     body {
-        font-family: 'Arial', 'Helvetica', sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+      color: #ffffff;
+    }
+
+    /* Background animation */
+    .floating-bubbles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .bubble {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(180deg); }
+    }
+
+    /* Logo */
+    .logo {
+      position: fixed;
+      top: 2rem;
+      left: 2rem;
+      width: 120px;
+      height: auto;
+      z-index: 1000;
+      opacity: 0.9;
+      transition: opacity 0.3s ease;
+    }
+
+    .logo:hover {
+      opacity: 1;
+    }
+
+    /* Chat container */
+    .chat-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .chat-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      animation: fadeInDown 0.8s ease-out;
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .chat-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #fff, #00f5ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .chat-subtitle {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      font-weight: 400;
+    }
+
+    /* Chat messages */
+    .chat-messages {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 25px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      max-height: 60vh;
+      overflow-y: auto;
+      animation: slideInUp 0.6s ease-out;
+    }
+
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message {
+      margin-bottom: 1.5rem;
+      animation: messageSlide 0.5s ease-out;
+    }
+
+    @keyframes messageSlide {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .message.user {
+      text-align: right;
+    }
+
+    .message.user .message-bubble {
+      background: linear-gradient(135deg, #00f5ff, #0099ff);
+      margin-left: auto;
+    }
+
+    .message.oracle .message-bubble {
+      background: rgba(255, 255, 255, 0.95);
+      color: #333;
+      margin-right: auto;
+    }
+
+    .message-bubble {
+      display: inline-block;
+      max-width: 80%;
+      padding: 1.2rem 1.8rem;
+      border-radius: 20px;
+      font-size: 1rem;
+      line-height: 1.5;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .message-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      opacity: 0.8;
+    }
+
+    .empty-state {
+      text-align: center;
+      opacity: 0.7;
+      font-style: italic;
+      padding: 3rem;
+    }
+
+    /* Input form */
+    .chat-input-container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 25px;
+      padding: 1.5rem;
+      animation: slideInUp 0.8s ease-out;
+    }
+
+    .input-wrapper {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-end;
+    }
+
+    .chat-textarea {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.9);
+      border: none;
+      border-radius: 15px;
+      padding: 1rem 1.5rem;
+      font-size: 1rem;
+      color: #333;
+      resize: none;
+      transition: all 0.3s ease;
+      font-family: inherit;
+      line-height: 1.4;
+      max-height: 120px;
+    }
+
+    .chat-textarea:focus {
+      outline: none;
+      background: rgba(255, 255, 255, 1);
+      box-shadow: 0 0 0 3px rgba(0, 245, 255, 0.3);
+    }
+
+    .chat-textarea::placeholder {
+      color: #666;
+    }
+
+    .send-button {
+      background: linear-gradient(135deg, #00f5ff, #0099ff);
+      border: none;
+      border-radius: 15px;
+      padding: 1rem 2rem;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 1rem;
+      min-width: 120px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .send-button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 245, 255, 0.4);
+    }
+
+    .send-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .send-button.loading::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 20px;
+      height: 20px;
+      margin: -10px 0 0 -10px;
+      border: 2px solid transparent;
+      border-top: 2px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Scrollbar styling */
+    .chat-messages::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .chat-messages::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 3px;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    /* Toast notifications */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 20px;
+      font-weight: 500;
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toast.error {
+      background: rgba(239, 68, 68, 0.9);
+    }
+
+    /* Mobile responsiveness */
+    @media (max-width: 768px) {
+      .chat-container {
+        padding: 1rem;
+      }
+      
+      .chat-title {
+        font-size: 1.8rem;
+      }
+      
+      .logo {
+        width: 80px;
+        top: 1rem;
+        left: 1rem;
+      }
+      
+      .input-wrapper {
+        flex-direction: column;
+        gap: 1rem;
+      }
+      
+      .send-button {
+        width: 100%;
+      }
+      
+      .message-bubble {
+        max-width: 90%;
+      }
+    }
+
+    /* Typing indicator */
+    .typing-indicator {
+      display: none;
+      padding: 1rem 1.5rem;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 20px;
+      margin: 1rem 0;
+      color: #666;
+      font-style: italic;
+    }
+
+    .typing-indicator.show {
+      display: block;
+      animation: messageSlide 0.3s ease-out;
+    }
+
+    .typing-dots {
+      display: inline-block;
+    }
+
+    .typing-dots::after {
+      content: '...';
+      animation: typingDots 1.5s infinite;
+    }
+
+    @keyframes typingDots {
+      0%, 60% { content: '...'; }
+      20% { content: '.'; }
+      40% { content: '..'; }
     }
   </style>
 </head>
-<body class="bg-gray-100">
+<body>
+  <!-- Floating background bubbles -->
+  <div class="floating-bubbles" id="floating-bubbles"></div>
+
   <!-- Logo -->
-  <img decoding="async" src="https://das-orakel.eu/wp-content/uploads/2023/12/dovm_logo_black-2023.svg" 
-       alt="Logo" class="wp-image-2166" style="aspect-ratio:1;width:177px;height:auto;position: absolute;top:0px;left:0px">
+  <img src="https://das-orakel.eu/wp-content/uploads/2023/12/dovm_logo_black-2023.svg" 
+       alt="Das Orakel von Mägdesprung Logo" 
+       class="logo">
 
-  <div class="container mx-auto px-4 py-8">
-    <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md">
-      <h2 class="text-xl font-semibold p-4 border-b">Frage das Orakel von Mägdesprung</h2>
+  <!-- Main chat container -->
+  <div class="chat-container">
+    <!-- Chat header -->
+    <div class="chat-header">
+      <h1 class="chat-title">Frage das Orakel</h1>
+      <p class="chat-subtitle">Stelle deine Frage und erhalte Weisheit aus Mägdesprung</p>
+    </div>
 
-      <div id="chat-messages" class="p-4 space-y-4">
-        {% if response %}
-          <div class="bg-gray-100 p-3 rounded">
-            <strong>Orakel:</strong> <div style="white-space: pre-wrap;">{{ response }}</div>
-          </div>
-        {% endif %}
+    <!-- Chat messages -->
+    <div class="chat-messages" id="chat-messages">
+      {% if response %}
+        <div class="message oracle">
+          <div class="message-label">Orakel:</div>
+          <div class="message-bubble">{{ response }}</div>
+        </div>
+      {% else %}
+        <div class="empty-state">
+          Willkommen! Stelle deine erste Frage an das Orakel von Mägdesprung.
+        </div>
+      {% endif %}
+      
+      <!-- Typing indicator -->
+      <div class="typing-indicator" id="typing-indicator">
+        <div class="message-label">Orakel denkt nach<span class="typing-dots"></span></div>
       </div>
+    </div>
 
-      <form method="post" class="p-4 border-t">
-        <textarea name="message"
-                  rows="5"
-                  class="w-full p-2 border rounded resize-none"
-                  placeholder="Schreibe deine Frage...">{{ user_input }}</textarea><br><br>
-        <input type="submit" value="Fragen" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 cursor-pointer">
+    <!-- Chat input -->
+    <div class="chat-input-container">
+      <form id="chat-form" class="input-wrapper">
+        <textarea 
+          id="message-input" 
+          name="message" 
+          class="chat-textarea"
+          placeholder="Schreibe deine Frage hier..."
+          rows="2">{{ user_input if user_input else '' }}</textarea>
+        <button type="submit" class="send-button" id="send-button">
+          <span id="button-text">Fragen</span>
+        </button>
       </form>
     </div>
   </div>
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // Create floating bubbles
+    function createFloatingBubbles() {
+      const container = document.getElementById('floating-bubbles');
+      for (let i = 0; i < 12; i++) {
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        bubble.style.left = Math.random() * 100 + '%';
+        bubble.style.top = Math.random() * 100 + '%';
+        bubble.style.width = bubble.style.height = Math.random() * 60 + 20 + 'px';
+        bubble.style.animationDelay = Math.random() * 6 + 's';
+        bubble.style.animationDuration = Math.random() * 4 + 4 + 's';
+        container.appendChild(bubble);
+      }
+    }
+
+    // Toast notification
+    function showToast(message, isError = false) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = 'toast show' + (isError ? ' error' : '');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 4000);
+    }
+
+    // Auto-resize textarea
+    function autoResizeTextarea(textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+    }
+
+    // Add message to chat
+    function addMessage(content, isUser = false) {
+      const chatMessages = document.getElementById('chat-messages');
+      const emptyState = chatMessages.querySelector('.empty-state');
+      
+      if (emptyState) {
+        emptyState.remove();
+      }
+
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${isUser ? 'user' : 'oracle'}`;
+      
+      messageDiv.innerHTML = `
+        <div class="message-label">${isUser ? 'Du:' : 'Orakel:'}</div>
+        <div class="message-bubble">${content}</div>
+      `;
+      
+      chatMessages.appendChild(messageDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Show/hide typing indicator
+    function showTypingIndicator() {
+      document.getElementById('typing-indicator').classList.add('show');
+      const chatMessages = document.getElementById('chat-messages');
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function hideTypingIndicator() {
+      document.getElementById('typing-indicator').classList.remove('show');
+    }
+
+    // Handle form submission
+    document.getElementById('chat-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const messageInput = document.getElementById('message-input');
+      const sendButton = document.getElementById('send-button');
+      const buttonText = document.getElementById('button-text');
+      const message = messageInput.value.trim();
+      
+      if (!message) {
+        showToast('Bitte gib eine Frage ein.', true);
+        return;
+      }
+
+      // Add user message to chat
+      addMessage(message, true);
+      
+      // Clear input and disable form
+      messageInput.value = '';
+      messageInput.style.height = 'auto';
+      sendButton.disabled = true;
+      sendButton.classList.add('loading');
+      buttonText.textContent = '';
+      
+      // Show typing indicator
+      showTypingIndicator();
+
+      try {
+ const response = await fetch('/llm', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ message: message })
+    });
+
+    if (!response.ok) throw new Error("Network response was not ok");
+
+
+        const data = await response.text();
+        
+        // Hide typing indicator
+        hideTypingIndicator();
+        
+        // Add oracle response to chat
+        addMessage(data, false);
+
+      } catch (error) {
+        console.error('Error:', error);
+        hideTypingIndicator();
+        showToast('Fehler beim Senden der Nachricht. Bitte versuche es erneut.', true);
+        addMessage('Entschuldigung, es gab einen Fehler. Bitte versuche es erneut.', false);
+      } finally {
+        // Re-enable form
+        sendButton.disabled = false;
+        sendButton.classList.remove('loading');
+        buttonText.textContent = 'Fragen';
+        messageInput.focus();
+      }
+    });
+
+    // Textarea auto-resize and Enter key handling
+    const messageInput = document.getElementById('message-input');
+    
+    messageInput.addEventListener('input', function() {
+      autoResizeTextarea(this);
+    });
+
+    messageInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        document.getElementById('chat-form').dispatchEvent(new Event('submit'));
+      }
+    });
+
+    // Initialize
+    createFloatingBubbles();
+    messageInput.focus();
+
+    // Auto-scroll to bottom on page load
+    window.addEventListener('load', function() {
+      const chatMessages = document.getElementById('chat-messages');
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    });
+  </script>
 </body>
 </html>

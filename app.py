@@ -1,10 +1,10 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
 from datetime import timedelta
 import os
 load_dotenv()
-from ai import GroqChat
+from utils.ai import GroqChat
 from blueprints.database import log_chat_to_db
 from blueprints.auth import auth_bp
 from blueprints.questions import questions_bp
@@ -39,11 +39,16 @@ def questions():
 
 @app.route("/llm", methods=["POST"])
 def llm():
-    user_input = request.form["message"]
+    data = request.get_json()
+    user_input = data.get("message", "")
+
+    # Generate response
     response = GroqChat.response_text(user_input)
 
-    # Store in MongoDB
+    # Log to database
     log_chat_to_db(user_input, response)
 
+    # Return JSON response
+    return jsonify({"response": response})
 if __name__ == "__main__":
     app.run(debug=True)
