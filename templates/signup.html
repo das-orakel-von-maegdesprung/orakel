@@ -62,6 +62,7 @@
     const res = await fetch("/request-login", {
       method: "POST",
       headers: {'Content-Type': 'application/json'},
+        credentials: "include",
       body: JSON.stringify({ email })
     });
 
@@ -79,6 +80,7 @@
     const res = await fetch("/verify-code", {
       method: "POST",
       headers: {'Content-Type': 'application/json'},
+        credentials: "include",
       body: JSON.stringify({ email: userEmail, code })
     });
 
@@ -96,7 +98,11 @@
   }
 
   async function loadQuestions() {
-    const res = await fetch("/questions.json");
+    const res = await fetch("/questions.json", {
+      method: "GET",
+      headers: {'Content-Type': 'application/json'},
+        credentials: "include"
+    });
     const questions = await res.json();
     form.innerHTML = '';
 
@@ -132,6 +138,7 @@
     const res = await fetch("/save-answers", {
       method: "POST",
       headers: {'Content-Type': 'application/json'},
+        credentials: "include",
       body: JSON.stringify({ email: userEmail, language: userLang, answers })
     });
 
@@ -144,7 +151,10 @@
   }
 
   async function checkIfLoggedIn() {
-  const res = await fetch("/get-user-data");
+  const res = await fetch("/get-user-data", {
+    method: "GET",
+    credentials: "include"
+  });
   const data = await res.json();
 
   if (data && data.email) {

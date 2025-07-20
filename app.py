@@ -1,13 +1,20 @@
 from flask import Flask, request, render_template
+from flask_cors import CORS
 from ai import GroqChat
 from blueprints.database import log_chat_to_db
 from blueprints.auth import auth_bp
 from blueprints.questions import questions_bp
 from datetime import timedelta
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 app = Flask(__name__, static_url_path='', static_folder='static')
 
-app.secret_key = "your_secret_key_here"
+CORS(app, origins=["https://das-orakel.vercel.app"], supports_credentials=True)
+
+app.secret_key = os.getenv("SECRET_KEY", "default_secret_key")
 app.permanent_session_lifetime = timedelta(days=30)
 
 
@@ -33,13 +40,6 @@ def llm():
 
     # Store in MongoDB
     log_chat_to_db(user_input, response)
-
-
-
-
-
-
-
 
 if __name__ == "__main__":
     app.run(debug=True)
