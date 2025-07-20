@@ -392,6 +392,7 @@
   </style>
 </head>
 <body>
+      <script src="auth-check.js"></script>
   <!-- Floating background bubbles -->
   <div class="floating-bubbles" id="floating-bubbles"></div>
 
@@ -747,22 +748,69 @@
             userAnswers[currentQ.id].otherText = elements.otherInput.value.trim();
           }
         }
+
+
+            const formattedAnswers = questions.map(q => {
+      const answerData = userAnswers[q.id];
+      if (!answerData) return `question: ${q.text[currentLang]} answer: (no response)`;
+
+      const answerText = answerData.isOther && answerData.otherText
+        ? answerData.otherText
+        : answerData.text;
+
+      return `question: ${q.text[currentLang]} answer: ${answerText}`;
+    });
+
+
+
+        console.log('Submitting answers:', formattedAnswers);
+        console.log('Current language:', currentLang);
         
-        const payload = {
-          answers: userAnswers,
-          lang: currentLang
-        };
-        
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
+       const payload = {
+
+      answers: formattedAnswers,
+      language: currentLang,         // Changed "lang" to "language" to match the Flask route
+    };
+
+    console.log('Submitting answers:', payload);
+    const response = await fetch('/save-answers', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const result = await response.json();
+    console.log('Response from server:', result);
+
+    if (response.ok) {
+      if (result.status === 'saved'){
+   console.log('Saved:', result);
+   window.location.href = '/chat'; // Redirect to chat page
+      } else {
+        console.error('Error saving:', result.error || 'Unknown error');
+        showToast(t('errorSave'));
+        elements.nextBtn.disabled = false;
+        elements.nextBtn.textContent = t('finish');
+        return;
+      }
+   
+      // Proceed to next UI step or notify user
+    } else {
+      console.error('Error saving:', result.error || 'Unknown error');
+    //  alert('Failed to save answers.');
+    }
+
+  
         showToast(t('answersSaved'));
         
-        setTimeout(() => {
-          window.location.href = '/chat';
-        }, 2000);
+      //  setTimeout(() => {
+        //  window.location.href = '/chat';
+        //}, 2000);
         
       } catch (error) {
+        console.error('Error saving answers:', error);
         showToast(t('errorSave'));
         elements.nextBtn.disabled = false;
         elements.nextBtn.textContent = t('finish');

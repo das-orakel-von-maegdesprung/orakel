@@ -210,7 +210,7 @@
           const data = await response.json();
           console.log(data);
 
-          if (!data.valid) {
+          if (data.status != 'logged_in') {
             codeError.textContent = 'Der Code ist ungültig.';
             codeError.style.display = 'block';
             codeSubmit.disabled = false;
@@ -220,7 +220,7 @@
           }
 
           // Success: Redirect or show next step
-          window.location.href = '/questions.html';
+          window.location.href = '/questions';
         } catch (error) {
           codeError.textContent = error.message || 'Fehler bei der Code-Überprüfung.';
           codeError.style.display = 'block';
