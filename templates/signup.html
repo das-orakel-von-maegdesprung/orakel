@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Das Orakel von Mägdesprung</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="https://das-orakel.eu/wp-content/uploads/fbrfg/favicon.ico" type="image/x-icon">
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+  <div class="bg-white shadow-lg rounded-lg max-w-md w-full p-6 space-y-6" id="auth-container">
+    
+    <!-- Step 1: Request Email -->
+    <div id="email-step">
+      <h2 class="text-xl font-semibold mb-4">Willkommen beim Orakel</h2>
+      <input type="email" id="email" placeholder="Deine E-Mail" class="w-full p-2 border rounded">
+      <button onclick="requestLogin()" class="w-full bg-blue-500 text-white py-2 mt-4 rounded hover:bg-blue-600">Weiter</button>
+    </div>
+
+    <!-- Step 2: Enter Code -->
+    <div id="code-step" class="hidden">
+      <p class="mb-2 text-gray-700">Ein Login-Code wurde an <span id="email-display"></span> gesendet.</p>
+      <input type="text" id="code" placeholder="6-stelliger Code" class="w-full p-2 border rounded">
+      <button onclick="verifyCode()" class="w-full bg-green-500 text-white py-2 mt-4 rounded hover:bg-green-600">Einloggen</button>
+    </div>
+
+    <!-- Step 3: Questionnaire -->
+    <div id="questionnaire-step" class="hidden">
+      <h2 class="text-xl font-semibold mb-4">Fragen an das Orakel</h2>
+      <form id="questionnaire-form" class="space-y-4">
+        <!-- Dynamically filled -->
+      </form>
+      <button onclick="submitAnswers()" class="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700 mt-4">Absenden</button>
+    </div>
+
+    <div id="status" class="text-sm text-center text-red-500"></div>
+  </div>
+
+<script>
+  const emailStep = document.getElementById('email-step');
+  const codeStep = document.getElementById('code-step');
+  const questionnaireStep = document.getElementById('questionnaire-step');
+  const statusDiv = document.getElementById('status');
+  const form = document.getElementById('questionnaire-form');
+
+  let userEmail = "";
+  let userLang = "de"; // Default language
+
+  function showStep(step) {
+    emailStep.classList.add('hidden');
+    codeStep.classList.add('hidden');
+    questionnaireStep.classList.add('hidden');
+    step.classList.remove('hidden');
+  }
+
+  async function requestLogin() {
+    const email = document.getElementById('email').value.trim().toLowerCase();
+    if (!email) return alert("Bitte E-Mail eingeben");
+    userEmail = email;
+    document.getElementById('email-display').textContent = email;
+
+    const res = await fetch("/request-login", {
+      method: "POST",
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ email })
+    });
+
+    if (res.ok) {
+      showStep(codeStep);
+    } else {
+      statusDiv.textContent = "Fehler beim Senden des Codes.";
+    }
+  }
+
+  async function verifyCode() {
+    const code = document.getElementById('code').value.trim();
+    if (!code) return alert("Bitte Code eingeben");
+
+    const res = await fetch("/verify-code", {
+      method: "POST",
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ email: userEmail, code })
+    });
+
+    if (res.ok) {
+      await askLanguage(); // Choose language first
+    } else {
+      statusDiv.textContent = "Ungültiger oder abgelaufener Code.";
+    }
+  }
+
+  async function askLanguage() {
+    const langChoice = confirm("Möchtest du Deutsch verwenden? Klicke auf 'Abbrechen' für Englisch.");
+    userLang = langChoice ? "de" : "en";
+    await loadQuestions();
+  }
+
+  async function loadQuestions() {
+    const res = await fetch("/questions.json");
+    const questions = await res.json();
+    form.innerHTML = '';
+
+    questions.forEach((q, index) => {
+      const label = q.translations[userLang] || q.translations["en"];
+      const options = q.options[userLang] || q.options["en"];
+
+      if (!Array.isArray(options)) {
+        console.warn(`Skipping question ${q.name}: options not array`);
+        return;
+      }
+
+      const qDiv = document.createElement('div');
+      qDiv.innerHTML = `
+        <label class="block mb-1 font-medium">${label}</label>
+        <select name="${q.name}" class="w-full p-2 border rounded">
+          ${options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+        </select>
+      `;
+      form.appendChild(qDiv);
+    });
+
+    showStep(questionnaireStep);
+  }
+
+  async function submitAnswers() {
+    const formData = new FormData(form);
+    const answers = {};
+    for (let [key, val] of formData.entries()) {
+      answers[key] = val;
+    }
+
+    const res = await fetch("/save-answers", {
+      method: "POST",
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ email: userEmail, language: userLang, answers })
+    });
+
+    if (res.ok) {
+      alert(userLang === "de" ? "Antworten gespeichert. Danke!" : "Answers saved. Thank you!");
+     goToChat();
+    } else {
+      statusDiv.textContent = "Fehler beim Speichern der Antworten.";
+    }
+  }
+
+  async function checkIfLoggedIn() {
+  const res = await fetch("/get-user-data");
+  const data = await res.json();
+
+  if (data && data.email) {
+    userEmail = data.email;
+    userLang = data.language || "de";
+    goToChat();
+  }
+}
+
+function goToChat(){
+  window.location.href = "/chat";
+}
+
+window.onload = () => {
+  checkIfLoggedIn();
+};
+
+</script>
+
+</body>
+</html>
