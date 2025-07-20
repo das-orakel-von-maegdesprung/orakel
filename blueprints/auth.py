@@ -38,7 +38,7 @@ def request_login():
     body = f"""
 Hello,
 
-Your login code is: {code}
+Your login code is: {code}    
 
 Or click the magic login link to sign in directly:
 {magic_link}
@@ -53,25 +53,40 @@ This code and link expire in 10 minutes.
 @auth_bp.route("/verify-code", methods=["POST"])
 def verify_code():
     data = request.get_json()
+    print("Received data:", data)
+
     email = data.get("email", "").strip().lower()
     code = data.get("code", "").strip()
+    print("Parsed email:", email)
+    print("Parsed code:", code)
+
+    now = datetime.utcnow()
+    print("Current UTC time:", now)
 
     record = login_tokens.find_one({
         "email": email,
         "code": code,
-        "expires_at": {"$gt": datetime.utcnow()}
+        "expires_at": {"$gt": now}
     })
 
+    print("Database query result:", record)
+
     if not record:
+        print("No valid record found — possibly invalid code, email, or expired.")
         return jsonify({"error": "Invalid or expired code"}), 400
 
     login_tokens.update_one({"_id": record["_id"]}, {"$set": {"verified": True}})
+    print("Marked token as verified.")
+
     users.update_one({"email": email}, {"$setOnInsert": {"email": email}}, upsert=True)
+    print("Ensured user exists in users collection.")
 
     session["email"] = email
     session.permanent = True
+    print("Session set for email:", email)
 
     return jsonify({"status": "logged_in"})
+
 
 
 @auth_bp.route("/magic-login/<token>")

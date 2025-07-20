@@ -1,177 +1,818 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Das Orakel von Mägdesprung</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.tailwindcss.com"></script>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" href="https://das-orakel.eu/wp-content/uploads/fbrfg/favicon.ico" type="image/x-icon">
+  <style>
+    body { margin: 0}
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 20px; left: 50%;
+      transform: translateX(-50%);
+      background: #6b46c1;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      font-weight: 600;
+      z-index: 9999;
+    }
+    #toast.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    /* Fullscreen language overlay */
+    #language-overlay {
+      position: fixed;
+      inset: 0;
+      background: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      z-index: 10000;
+        text-align: center;
+  padding: 0 20%;
+    }
+    #language-overlay h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    .lang-btn {
+      cursor: pointer;
+      border: 2px solid transparent;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s ease;
+      user-select: none;
+      background: #f9fafb;
+      box-shadow: 0 2px 6px rgb(0 0 0 / 0.1);
+    }
+    .lang-btn:hover, .lang-btn:focus {
+      border-color: #805ad5;
+      background: #ede9fe;
+      outline: none;
+    }
+    /* Top right lang toggle */
+    #lang-toggle {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: #f3f4f6;
+      border-radius: 9999px;
+      padding: 6px 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+      user-select: none;
+      box-shadow: 0 1px 4px rgb(0 0 0 / 0.1);
+      z-index: 10001;
+    }
+    #lang-toggle:hover {
+      background: #e0e7ff;
+    }
+    #lang-menu {
+      position: absolute;
+      top: 110%;
+      right: 0;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 3px 12px rgb(0 0 0 / 0.15);
+      display: none;
+      flex-direction: column;
+      min-width: 130px;
+      overflow: hidden;
+      user-select: none;
+      z-index: 10002;
+    }
+    #lang-menu.show {
+      display: flex;
+    }
+    #lang-menu button {
+      padding: 10px 16px;
+      background: transparent;
+      border: none;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    #lang-menu button:hover, #lang-menu button:focus {
+      background: #ede9fe;
+      outline: none;
+    }
+    /* Form styles */
+    .container {
+      max-width: 420px;
+      margin: auto;
+      background: white;
+      padding: 24px 28px;
+      border-radius: 12px;
+      box-shadow: 0 6px 16px rgb(0 0 0 / 0.12);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: relative;
+      margin-top: 60px;
+        margin-top: 60px;
+  margin-bottom: 60px;
+  padding: 24px 20px;
+    }
+    input[type=email], input[type=text], select, textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+      resize: vertical;
+      font-family: inherit;
+    }
+    input[type=email]:focus, input[type=text]:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #805ad5;
+      background: #faf5ff;
+    }
+    button.primary-btn {
+      width: 100%;
+      background: #6b46c1;
+      color: white;
+      font-weight: 700;
+      font-size: 1.1rem;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      user-select: none;
+    }
+    button.primary-btn:hover, button.primary-btn:focus {
+      background: #553c9a;
+      outline: none;
+    }
+    /* Question text */
+    #question-text {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    /* Progress dots container */
+    #progress-dots {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    #progress-dots button {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      background-color: #ddd;
+    }
+    #progress-dots button.current {
+      background-color: #6b46c1;
+    }
+    #progress-dots button.answered {
+      background-color: #a78bfa;
+    }
+    #progress-dots button:disabled {
+      cursor: default;
+      opacity: 0.4;
+    }
+    /* Other input */
+    #other-container {
+      margin-top: 10px;
+    }
+    #other-input {
+      min-height: 60px;
+    }
+
+  </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
-  <div class="bg-white shadow-lg rounded-lg max-w-md w-full p-6 space-y-6" id="auth-container">
-    
-    <!-- Step 1: Request Email -->
-    <div id="email-step">
-      <h2 class="text-xl font-semibold mb-4">Willkommen beim Orakel von Mägdesprung</h2>
-      <input type="email" id="email" placeholder="Deine E-Mail" class="w-full p-2 border rounded">
-      <button onclick="requestLogin()" class="w-full bg-blue-500 text-white py-2 mt-4 rounded hover:bg-blue-600">Weiter</button>
-    </div>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center px-4">
 
-    <!-- Step 2: Enter Code -->
-    <div id="code-step" class="hidden">
-      <p class="mb-2 text-gray-700">Ein Login-Code wurde an <span id="email-display"></span> gesendet.</p>
-      <input type="text" id="code" placeholder="6-stelliger Code" class="w-full p-2 border rounded">
-      <button onclick="verifyCode()" class="w-full bg-green-500 text-white py-2 mt-4 rounded hover:bg-green-600">Einloggen</button>
-    </div>
+<div id="loading-spinner" class="fixed inset-0 flex items-center justify-center bg-white bg-opacity-60 z-[9999] hidden">
+  <div class="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" role="status" aria-label="Wird geladen..."></div>
+</div>
 
-    <!-- Step 3: Questionnaire -->
-    <div id="questionnaire-step" class="hidden">
-      <h2 class="text-xl font-semibold mb-4">Fragen an das Orakel</h2>
-      <form id="questionnaire-form" class="space-y-4">
-        <!-- Dynamically filled -->
-      </form>
-      <button onclick="submitAnswers()" class="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700 mt-4">Absenden</button>
+  <!-- Language toggle top right -->
+  <div id="lang-toggle" tabindex="0" aria-haspopup="true" aria-expanded="false" aria-label="Language selector">
+    <span id="lang-flag">🇩🇪</span> <span id="lang-label">Deutsch</span> ▼
+    <div id="lang-menu" role="menu" aria-label="Select language">
+      <button data-lang="de" role="menuitem" tabindex="-1">🇩🇪 Deutsch</button>
+      <button data-lang="en" role="menuitem" tabindex="-1">🇬🇧 English</button>
     </div>
-
-    <div id="status" class="text-sm text-center text-red-500"></div>
   </div>
 
-<script>
-  const emailStep = document.getElementById('email-step');
-  const codeStep = document.getElementById('code-step');
-  const questionnaireStep = document.getElementById('questionnaire-step');
-  const statusDiv = document.getElementById('status');
-  const form = document.getElementById('questionnaire-form');
+  <!-- Fullscreen language overlay -->
+  <div id="language-overlay" role="dialog" aria-modal="true" aria-labelledby="language-title">
+    <h1 id="language-title">Willkommen beim Orakel von Mägdesprung. Welche Sprache ist die lieber?  Welcome to the Oracle of Mägdesprung! Which language do you prefer?</h1>
+    <button class="lang-btn" data-lang="de" aria-label="Deutsch auswählen">🇩🇪 Deutsch</button>
+    <button class="lang-btn" data-lang="en" aria-label="Select English">🇬🇧 English</button>
+  </div>
 
+  <!-- Main container -->
+  <main class="container" role="main" aria-live="polite" aria-atomic="true">
+
+    <!-- Step: Email input -->
+    <section id="email-step" aria-label="Email Eingabe" class="hidden">
+      <h2 class="text-2xl font-bold mb-4" id="email-step-title">Willkommen beim Orakel von Mägdesprung</h2>
+      <input type="email" id="email-input" placeholder="Deine E-Mail" autocomplete="email" aria-required="true" aria-describedby="email-error" />
+      <p id="email-error" class="text-red-600 text-sm mt-1 hidden"></p>
+      <button id="email-submit" class="primary-btn mt-4">Weiter →</button>
+    </section>
+
+    <!-- Step: Code verification -->
+    <section id="code-step" aria-label="Code Eingabe" class="hidden">
+      <p id="code-info" class="mb-2 text-gray-700">Ein Login-Code wurde an <span id="code-email"></span> gesendet.</p>
+      <input type="text" id="code-input" placeholder="6-stelliger Code" inputmode="numeric" maxlength="6" aria-required="true" aria-describedby="code-error" />
+      <p id="code-error" class="text-red-600 text-sm mt-1 hidden"></p>
+      <button id="code-submit" class="primary-btn mt-4">Einloggen →</button>
+    </section>
+
+    <!-- Step: Questionnaire -->
+    <section id="questionnaire-step" aria-label="Fragebogen" class="hidden flex flex-col">
+      <h2 id="question-text" tabindex="0"></h2>
+
+      <select id="answer-select" aria-label="Antwort auswählen"></select>
+
+      <div id="other-container" class="hidden">
+        <textarea id="other-input" placeholder="Andere Antwort hier eingeben..." aria-label="Andere Antwort eingeben"></textarea>
+      </div>
+
+      <div class="flex justify-between mt-6">
+        <button id="prev-btn" class="primary-btn w-32 bg-gray-300 text-gray-700 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-600" aria-label="Zurück">← Zurück</button>
+        <button id="next-btn" class="primary-btn w-32">Weiter →</button>
+      </div>
+
+      <div id="progress-dots" aria-label="Fragefortschritt" class="mt-6" role="tablist"></div>
+    </section>
+
+  </main>
+
+  <!-- Toast notification -->
+  <div id="toast" role="alert" aria-live="assertive"></div>
+
+<script>
+(() => {
+  // UI elements
+  const langOverlay = document.getElementById("language-overlay");
+  const langButtons = langOverlay.querySelectorAll(".lang-btn");
+  const langToggle = document.getElementById("lang-toggle");
+  const langMenu = document.getElementById("lang-menu");
+  const langFlag = document.getElementById("lang-flag");
+  const langLabel = document.getElementById("lang-label");
+
+  const emailStep = document.getElementById("email-step");
+  const emailInput = document.getElementById("email-input");
+  const emailSubmit = document.getElementById("email-submit");
+  const emailError = document.getElementById("email-error");
+
+  const codeStep = document.getElementById("code-step");
+  const codeEmail = document.getElementById("code-email");
+  const codeInput = document.getElementById("code-input");
+  const codeSubmit = document.getElementById("code-submit");
+  const codeError = document.getElementById("code-error");
+
+  const questionnaireStep = document.getElementById("questionnaire-step");
+  const questionText = document.getElementById("question-text");
+  const answerSelect = document.getElementById("answer-select");
+  const otherContainer = document.getElementById("other-container");
+  const otherInput = document.getElementById("other-input");
+  const prevBtn = document.getElementById("prev-btn");
+  const nextBtn = document.getElementById("next-btn");
+  const progressDots = document.getElementById("progress-dots");
+
+  const toast = document.getElementById("toast");
+
+  // State variables
+  let userLang = "de";
   let userEmail = "";
-  let userLang = "de"; // Default language
+  let questions = [];
+  let currentIndex = 0;
+  let answers = {}; // key: question name, value: selected option or "other"
+
+  // Translations
+  const translations = {
+    de: {
+      welcome: "Willkommen beim Orakel von Mägdesprung",
+      enterEmail: "Deine E-Mail",
+      emailRequired: "Bitte eine gültige E-Mail eingeben.",
+      emailSent: "Der Login-Code wurde gesendet!",
+      enterCode: "6-stelliger Code",
+      codeRequired: "Bitte den Code eingeben.",
+      invalidCode: "Ungültiger oder abgelaufener Code.",
+      codeInfo: "Ein Login-Code wurde an {email} gesendet.",
+      next: "Weiter →",
+      prev: "← Zurück",
+      otherPlaceholder: "Andere Antwort hier eingeben...",
+      answersSaved: "Antworten gespeichert. Danke!",
+      errorSave: "Fehler beim Speichern der Antworten.",
+      errorLoadQuestions: "Fehler beim Laden der Fragen.",
+      questionProgress: "Frage {current} von {total}",
+      langGerman: "Deutsch",
+      langEnglish: "English",
+      selectAnswer: "Antwort auswählen",
+      languageOverlayTitle: "Willkommen! / Welcome!",
+      languagePrompt: "Bitte wähle eine Sprache / Please select a language",
+      emailStepTitle: "Willkommen beim Orakel von Mägdesprung"
+    },
+    en: {
+      welcome: "Welcome to the Oracle of Mägdesprung",
+      enterEmail: "Your email",
+      emailRequired: "Please enter a valid email.",
+      emailSent: "Login code sent!",
+      enterCode: "6-digit code",
+      codeRequired: "Please enter the code.",
+      invalidCode: "Invalid or expired code.",
+      codeInfo: "A login code has been sent to {email}.",
+      next: "Next →",
+      prev: "← Back",
+      otherPlaceholder: "Enter other answer here...",
+      answersSaved: "Answers saved. Thank you!",
+      errorSave: "Error saving answers.",
+      errorLoadQuestions: "Error loading questions.",
+      questionProgress: "Question {current} of {total}",
+      langGerman: "German",
+      langEnglish: "English",
+      selectAnswer: "Select answer",
+      languageOverlayTitle: "Welcome! / Willkommen!",
+      languagePrompt: "Please select a language / Bitte wähle eine Sprache",
+      emailStepTitle: "Welcome to the Oracle of Mägdesprung"
+    }
+  };
+
+  // Utility functions
+  function t(key, params = {}) {
+    let txt = translations[userLang][key] || key;
+    Object.entries(params).forEach(([k, v]) => {
+      txt = txt.replace(`{${k}}`, v);
+    });
+    return txt;
+  }
+
+  function showToast(msg, duration = 3000) {
+    toast.textContent = msg;
+    toast.classList.add("show");
+    setTimeout(() => {
+      toast.classList.remove("show");
+    }, duration);
+  }
 
   function showStep(step) {
-    emailStep.classList.add('hidden');
-    codeStep.classList.add('hidden');
-    questionnaireStep.classList.add('hidden');
-    step.classList.remove('hidden');
+    emailStep.classList.add("hidden");
+    codeStep.classList.add("hidden");
+    questionnaireStep.classList.add("hidden");
+    step.classList.remove("hidden");
+    step.focus?.();
   }
 
-  async function requestLogin() {
-    const email = document.getElementById('email').value.trim().toLowerCase();
-    if (!email) return alert("Bitte E-Mail eingeben");
-    userEmail = email;
-    document.getElementById('email-display').textContent = email;
+  function updateLangToggleUI() {
+    if (userLang === "de") {
+      langFlag.textContent = "🇩🇪";
+      langLabel.textContent = t("langGerman");
+    } else {
+      langFlag.textContent = "🇬🇧";
+      langLabel.textContent = t("langEnglish");
+    }
+  }
 
+  // Language overlay handlers
+  langButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      userLang = btn.dataset.lang;
+      updateLangToggleUI();
+      langOverlay.style.display = "none";
+      showStep(emailStep);
+      updateUIText();
+    });
+  });
+
+  // Language dropdown toggle handlers
+  langToggle.addEventListener("click", () => {
+    const expanded = langToggle.getAttribute("aria-expanded") === "true";
+    if (expanded) {
+      langMenu.classList.remove("show");
+      langToggle.setAttribute("aria-expanded", "false");
+    } else {
+      langMenu.classList.add("show");
+      langToggle.setAttribute("aria-expanded", "true");
+      // Focus first language option
+      langMenu.querySelector("button").focus();
+    }
+  });
+
+  langMenu.querySelectorAll("button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const selectedLang = btn.dataset.lang;
+      if (selectedLang !== userLang) {
+        userLang = selectedLang;
+        updateLangToggleUI();
+        updateUIText();
+        // Reset questionnaire UI if on it
+        if (!emailStep.classList.contains("hidden")) return;
+        if (!codeStep.classList.contains("hidden")) return;
+        if (!questionnaireStep.classList.contains("hidden")) {
+          renderQuestion();
+          renderProgressDots();
+          updateNavigationButtons();
+        }
+      }
+      langMenu.classList.remove("show");
+      langToggle.setAttribute("aria-expanded", "false");
+      langToggle.focus();
+    });
+  });
+
+  // Close language menu if focus lost or click outside
+  document.addEventListener("click", (e) => {
+    if (!langToggle.contains(e.target) && !langMenu.contains(e.target)) {
+      langMenu.classList.remove("show");
+      langToggle.setAttribute("aria-expanded", "false");
+    }
+  });
+
+  // Keyboard accessibility for lang toggle
+  langToggle.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      langMenu.classList.add("show");
+      langToggle.setAttribute("aria-expanded", "true");
+      langMenu.querySelector("button").focus();
+    }
+  });
+
+  // Email step
+  function validateEmail(email) {
+    // Simple email regex
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+  function showSpinner() {
+  const spinner = document.getElementById("loading-spinner");
+  if (spinner) spinner.classList.remove("hidden");
+}
+
+function hideSpinner() {
+  const spinner = document.getElementById("loading-spinner");
+  if (spinner) spinner.classList.add("hidden");
+}
+
+
+emailSubmit.addEventListener("click", async () => {
+  const email = emailInput.value.trim().toLowerCase();
+  emailError.classList.add("hidden");
+
+  if (!validateEmail(email)) {
+    emailError.textContent = t("emailRequired");
+    emailError.classList.remove("hidden");
+    emailInput.focus();
+    return;
+  }
+
+  userEmail = email;
+
+  showSpinner();
+
+  try {
     const res = await fetch("/request-login", {
       method: "POST",
-      headers: {'Content-Type': 'application/json'},
-        credentials: "include",
-      body: JSON.stringify({ email })
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ email }),
     });
 
-    if (res.ok) {
-      showStep(codeStep);
-    } else {
-      statusDiv.textContent = "Fehler beim Senden des Codes.";
+    if (!res.ok) throw new Error("Failed to send code");
+
+    showToast(t("emailSent"));
+    codeEmail.textContent = email;
+    codeInput.value = "";
+    codeError.classList.add("hidden");
+    showStep(codeStep);
+    codeInput.focus();
+
+  } catch (e) {
+    emailError.textContent = t("errorSave");
+    emailError.classList.remove("hidden");
+    console.error(e);
+  } finally {
+    hideSpinner();
+  }
+});
+
+  // Code verification
+  codeSubmit.addEventListener("click", async () => {
+    const code = codeInput.value.trim();
+    codeError.classList.add("hidden");
+    if (code.length !== 6 || !/^\d{6}$/.test(code)) {
+      codeError.textContent = t("codeRequired");
+      codeError.classList.remove("hidden");
+      codeInput.focus();
+      return;
     }
-  }
-
-  async function verifyCode() {
-    const code = document.getElementById('code').value.trim();
-    if (!code) return alert("Bitte Code eingeben");
-
-    const res = await fetch("/verify-code", {
-      method: "POST",
-      headers: {'Content-Type': 'application/json'},
+    try {
+      const res = await fetch("/verify-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
-      body: JSON.stringify({ email: userEmail, code })
-    });
-
-    if (res.ok) {
-      await askLanguage(); // Choose language first
-    } else {
-      statusDiv.textContent = "Ungültiger oder abgelaufener Code.";
-    }
-  }
-
-  async function askLanguage() {
-    const langChoice = confirm("Möchtest du Deutsch verwenden? Klicke auf 'Abbrechen' für Englisch.");
-    userLang = langChoice ? "de" : "en";
-    await loadQuestions();
-  }
-
-  async function loadQuestions() {
-    const res = await fetch("/questions.json", {
-      method: "GET",
-      headers: {'Content-Type': 'application/json'},
-        credentials: "include"
-    });
-    const questions = await res.json();
-    form.innerHTML = '';
-
-    questions.forEach((q, index) => {
-      const label = q.translations[userLang] || q.translations["en"];
-      const options = q.options[userLang] || q.options["en"];
-
-      if (!Array.isArray(options)) {
-        console.warn(`Skipping question ${q.name}: options not array`);
+        body: JSON.stringify({ email: userEmail, code }),
+      });
+      if (!res.ok) throw new Error("Invalid code");
+      const result = await res.json();
+      if (!result.valid) {
+        codeError.textContent = t("invalidCode");
+        codeError.classList.remove("hidden");
+        codeInput.focus();
         return;
       }
-
-      const qDiv = document.createElement('div');
-      qDiv.innerHTML = `
-        <label class="block mb-1 font-medium">${label}</label>
-        <select name="${q.name}" class="w-full p-2 border rounded">
-          ${options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
-        </select>
-      `;
-      form.appendChild(qDiv);
-    });
-
-    showStep(questionnaireStep);
-  }
-
-  async function submitAnswers() {
-    const formData = new FormData(form);
-    const answers = {};
-    for (let [key, val] of formData.entries()) {
-      answers[key] = val;
+      // Load questions
+      await loadQuestions();
+    } catch (e) {
+      codeError.textContent = t("invalidCode");
+      codeError.classList.remove("hidden");
+      codeInput.focus();
+      console.error(e);
     }
-
-    const res = await fetch("/save-answers", {
-      method: "POST",
-      headers: {'Content-Type': 'application/json'},
-        credentials: "include",
-      body: JSON.stringify({ email: userEmail, language: userLang, answers })
-    });
-
-    if (res.ok) {
-      alert(userLang === "de" ? "Antworten gespeichert. Danke!" : "Answers saved. Thank you!");
-     goToChat();
-    } else {
-      statusDiv.textContent = "Fehler beim Speichern der Antworten.";
-    }
-  }
-
-  async function checkIfLoggedIn() {
-  const res = await fetch("/get-user-data", {
-    method: "GET",
-    credentials: "include"
   });
-  const data = await res.json();
 
-  if (data && data.email) {
-    userEmail = data.email;
-    userLang = data.language || "de";
-    goToChat();
+  // Load questions from server
+  async function loadQuestions() {
+    try {
+      const res = await fetch("/questions.json", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to load questions");
+      const data = await res.json();
+      questions = data;
+      currentIndex = 0;
+      answers = {};
+      otherInput.value = "";
+      otherContainer.classList.add("hidden");
+      showStep(questionnaireStep);
+      renderQuestion();
+      renderProgressDots();
+      updateNavigationButtons();
+      questionText.focus();
+    } catch (e) {
+      alert(t("errorLoadQuestions"));
+      console.error(e);
+    }
   }
-}
 
-function goToChat(){
-  window.location.href = "/chat";
-}
+  // Render question & options
+  function renderQuestion() {
+    const q = questions[currentIndex];
+    if (!q) return;
+    questionText.textContent = `${t("questionProgress", { current: currentIndex + 1, total: questions.length })}: ${q.text[userLang] || q.text.de}`;
+    answerSelect.innerHTML = "";
+    const placeholderOption = document.createElement("option");
+    placeholderOption.value = "";
+    placeholderOption.textContent = t("selectAnswer");
+    placeholderOption.disabled = true;
+    placeholderOption.selected = true;
+    answerSelect.appendChild(placeholderOption);
 
-window.onload = () => {
-  checkIfLoggedIn();
-};
+    q.options.forEach((opt) => {
+      const optText = opt[userLang] || opt.de;
+      const optionEl = document.createElement("option");
+      optionEl.value = opt.id;
+      optionEl.textContent = optText;
+      answerSelect.appendChild(optionEl);
+    });
+    // Check if user already answered
+    const ans = answers[q.id];
+    if (ans) {
+      if (ans.type === "other") {
+        answerSelect.value = "other";
+        otherContainer.classList.remove("hidden");
+        otherInput.value = ans.value;
+      } else {
+        answerSelect.value = ans.value;
+        otherContainer.classList.add("hidden");
+        otherInput.value = "";
+      }
+    } else {
+      answerSelect.value = "";
+      otherContainer.classList.add("hidden");
+      otherInput.value = "";
+    }
+  }
 
+  // Render progress dots
+  function renderProgressDots() {
+    progressDots.innerHTML = "";
+    questions.forEach((q, i) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.setAttribute("role", "tab");
+      btn.setAttribute("aria-selected", i === currentIndex ? "true" : "false");
+      btn.title = t("questionProgress", { current: i + 1, total: questions.length });
+      btn.classList.add(i === currentIndex ? "current" : "");
+      if (answers[q.id]) btn.classList.add("answered");
+      if (i > currentIndex && !answers[questions[i - 1].id]) {
+        btn.disabled = true;
+      }
+      btn.addEventListener("click", () => {
+        if (i <= currentIndex || answers[questions[i - 1]?.id]) {
+          saveAnswerIfValid(() => {
+            currentIndex = i;
+            renderQuestion();
+            renderProgressDots();
+            updateNavigationButtons();
+          });
+        }
+      });
+      progressDots.appendChild(btn);
+    });
+  }
+
+  // Save answer, then callback
+  function saveAnswerIfValid(callback) {
+    const selectedVal = answerSelect.value;
+    if (!selectedVal) {
+      alert(t("selectAnswer"));
+      answerSelect.focus();
+      return;
+    }
+    if (selectedVal === "other") {
+      const otherVal = otherInput.value.trim();
+      if (!otherVal) {
+        alert(t("otherPlaceholder"));
+        otherInput.focus();
+        return;
+      }
+      answers[questions[currentIndex].id] = { type: "other", value: otherVal };
+    } else {
+      answers[questions[currentIndex].id] = { type: "option", value: selectedVal };
+    }
+    if (typeof callback === "function") callback();
+  }
+
+  // Navigation buttons
+  prevBtn.addEventListener("click", () => {
+    if (currentIndex > 0) {
+      saveAnswerIfValid(() => {
+        currentIndex--;
+        renderQuestion();
+        renderProgressDots();
+        updateNavigationButtons();
+      });
+    }
+  });
+
+  nextBtn.addEventListener("click", async () => {
+    saveAnswerIfValid(async () => {
+      if (currentIndex === questions.length - 1) {
+        // Submit answers
+        try {
+          const payload = {};
+          // Flatten answers for backend: {questionId: answerText}
+          questions.forEach((q) => {
+            const ans = answers[q.id];
+            if (!ans) return;
+            if (ans.type === "other") {
+              payload[q.id] = ans.value;
+            } else {
+              // Find option text by id
+              const opt = q.options.find(o => o.id === ans.value);
+              payload[q.id] = opt ? (opt[userLang] || opt.de) : ans.value;
+            }
+          });
+          const res = await fetch("/submit-answers", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ email: userEmail, answers: payload }),
+          });
+          if (!res.ok) throw new Error("Failed to submit answers");
+          showToast(t("answersSaved"), 4000);
+          nextBtn.disabled = true;
+          prevBtn.disabled = true;
+          answerSelect.disabled = true;
+          otherInput.disabled = true;
+          // Optionally: Show a final thank you message
+          questionText.textContent = t("answersSaved");
+          answerSelect.style.display = "none";
+          otherContainer.style.display = "none";
+          prevBtn.style.display = "none";
+          nextBtn.style.display = "none";
+          progressDots.style.display = "none";
+        } catch (e) {
+          alert(t("errorSave"));
+          console.error(e);
+        }
+      } else {
+        currentIndex++;
+        renderQuestion();
+        renderProgressDots();
+        updateNavigationButtons();
+      }
+    });
+  });
+
+  // Show or hide other input
+  answerSelect.addEventListener("change", () => {
+    if (answerSelect.value === "other") {
+      otherContainer.classList.remove("hidden");
+      otherInput.focus();
+    } else {
+      otherContainer.classList.add("hidden");
+      otherInput.value = "";
+    }
+  });
+
+  function updateNavigationButtons() {
+    prevBtn.disabled = currentIndex === 0;
+    nextBtn.textContent = currentIndex === questions.length - 1 ? t("next") : t("next");
+  }
+
+  // Update text placeholders and labels based on language
+  function updateUIText() {
+    // Email step
+    emailStep.querySelector("h2").textContent = t("emailStepTitle");
+    emailInput.placeholder = t("enterEmail");
+    emailSubmit.textContent = t("next");
+
+    // Code step
+    codeInput.placeholder = t("enterCode");
+    codeSubmit.textContent = t("next");
+    codeInput.value = "";
+    codeError.classList.add("hidden");
+
+    // Questionnaire step
+    otherInput.placeholder = t("otherPlaceholder");
+    prevBtn.textContent = t("prev");
+    nextBtn.textContent = t("next");
+
+    if (questions.length > 0) {
+      renderQuestion();
+      renderProgressDots();
+    }
+  }
+
+  // Initial UI setup
+  updateLangToggleUI();
+  updateUIText();
+
+  // Accessibility: trap focus inside lang overlay until selected
+  function trapFocus(element) {
+    const focusableSelectors = [
+      'a[href]',
+      'area[href]',
+      'input:not([disabled])',
+      'select:not([disabled])',
+      'textarea:not([disabled])',
+      'button:not([disabled])',
+      'iframe',
+      'object',
+      'embed',
+      '[tabindex]:not([tabindex="-1"])',
+      '[contenteditable]'
+    ];
+    const focusableElements = element.querySelectorAll(focusableSelectors.join(','));
+    const firstFocusable = focusableElements[0];
+    const lastFocusable = focusableElements[focusableElements.length -1];
+
+    element.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab') {
+        if (e.shiftKey) {
+          if (document.activeElement === firstFocusable) {
+            e.preventDefault();
+            lastFocusable.focus();
+          }
+        } else {
+          if (document.activeElement === lastFocusable) {
+            e.preventDefault();
+            firstFocusable.focus();
+          }
+        }
+      }
+    });
+  }
+  trapFocus(langOverlay);
+
+})();
 </script>
 
 </body>

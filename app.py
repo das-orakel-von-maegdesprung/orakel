@@ -1,14 +1,15 @@
 from flask import Flask, request, render_template
 from flask_cors import CORS
+from dotenv import load_dotenv
+from datetime import timedelta
+import os
+load_dotenv()
 from ai import GroqChat
 from blueprints.database import log_chat_to_db
 from blueprints.auth import auth_bp
 from blueprints.questions import questions_bp
-from datetime import timedelta
-from dotenv import load_dotenv
-import os
 
-load_dotenv()
+
 
 app = Flask(__name__, static_url_path='', static_folder='static')
 
