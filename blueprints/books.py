@@ -21,15 +21,18 @@ def list_books():
 @books_bp.route("/upload_book", methods=["POST"])
 def upload_book():
     try:
-        # Get the file and title from the request
-        if "pdf" not in request.files or "title" not in request.form:
-            return jsonify({"error": "PDF file and title are required"}), 400
+        if "pdf" not in request.files:
+            return jsonify({"error": "PDF file is required"}), 400
 
         file = request.files["pdf"]
-        title = request.form["title"]
+        if file.filename == "":
+            return jsonify({"error": "No selected file"}), 400
 
-        # Secure the filename and save temporarily
+        # Secure the filename and derive the title from filename without extension
         filename = secure_filename(file.filename)
+        title = os.path.splitext(filename)[0]
+
+        # Save the file (can rename if you want uniqueness, here just saving as is)
         filepath = os.path.join(UPLOAD_FOLDER, filename)
         file.save(filepath)
 
@@ -48,5 +51,23 @@ def upload_book():
 
         return jsonify({"status": "uploaded", "title": title})
     
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@books_bp.route("/delete_book", methods=["DELETE"])
+def delete_book():
+    try:
+        data = request.get_json()
+        title = data.get("title")
+
+        if not title:
+            return jsonify({"error": "Title is required"}), 400
+
+        result = get_books_collection().delete_one({"title": title})
+        if result.deleted_count == 0:
+            return jsonify({"error": "Book not found"}), 404
+
+        return jsonify({"status": "deleted", "title": title})
     except Exception as e:
         return jsonify({"error": str(e)}), 500

@@ -19,7 +19,7 @@ from utils.database_auth import (
     revoke_session_token
 )
 
-from utils.email import send_email  # Make sure you have this module
+from utils.emailing import send_email  # Make sure you have this module
 
 auth_bp = Blueprint("auth", __name__)
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://127.0.0.1:5000")
