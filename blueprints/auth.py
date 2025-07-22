@@ -7,7 +7,7 @@ import random
 import string
 import secrets
 
-from blueprints.database_auth import (
+from utils.database_auth import (
     create_login_token,
     find_valid_token_by_code,
     mark_token_verified,

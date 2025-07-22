@@ -1,9 +1,9 @@
 from flask import Blueprint, request, jsonify
-from blueprints.database import users
+from utils.database import get_users_collection
 
 questions_bp = Blueprint("questions", __name__)
 from flask import session
-from blueprints.database_auth import find_valid_session_token, get_user_data_by_email
+from utils.database_auth import find_valid_session_token, get_user_data_by_email
 
 @questions_bp.route("/save-answers", methods=["POST"])
 def save_answers():
@@ -25,7 +25,7 @@ def save_answers():
         language = data.get("language", "de")
 
         # Update user data based on email (not token)
-        result = users.update_one(
+        result = get_users_collection().update_one(
             {"email": email},
             {"$set": {"answers": answers, "language": language,"answered_all_questions": True}},
             upsert=True

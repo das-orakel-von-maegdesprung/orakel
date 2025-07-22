@@ -13,24 +13,31 @@
     const sessionData = await response.json();
     console.log('Auth check:', sessionData);
 
-    if (sessionData.status === 'logged_in') {
-         
-        // const hasAnsweredAllQuestions = sessionData.user.answers.length > 0;
-        // console.log('Has answered all questions:', hasAnsweredAllQuestions);
+ 
+      const path = window.location.pathname;
+ const hasAnsweredAllQuestions = sessionData.user.answers.length > 0;
 
-      if (window.location.pathname !== '/questions') {
-        // If logged in and on the home page, redirect to questions
+   if (sessionData.status === 'logged_in') {
 
-        const hasAnsweredAllQuestions = sessionData.user.answers.length > 0;
-        console.log('Has answered all questions:', hasAnsweredAllQuestions);
 
-        if(hasAnsweredAllQuestions != true){
-        window.location.href = '/questions';
-      }
-    }
+
+      switch (path) {
+        case '/':
+          if (!hasAnsweredAllQuestions) {
+            window.location.href = '/questions';
+          }else{
+            window.location.href = '/chat';
+          }
+          break;
+        case '/questions':
+          if (hasAnsweredAllQuestions) {
+            window.location.href = '/chat';
+          }
+          break;
+        }
  
     }else{
-      if (window.location.pathname !== '/') {
+      if (path !== '/') {
         window.location.href = '/';
       }
     }

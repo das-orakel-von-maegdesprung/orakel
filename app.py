@@ -8,7 +8,7 @@ load_dotenv()
 from blueprints.auth import auth_bp
 from blueprints.questions import questions_bp
 from blueprints.orakel import orakel_bp
-
+from blueprints.books import books_bp
 
 
 app = Flask(__name__, static_url_path='', static_folder='static')
@@ -22,6 +22,7 @@ app.permanent_session_lifetime = timedelta(days=30)
 app.register_blueprint(orakel_bp)
 app.register_blueprint(auth_bp)
 app.register_blueprint(questions_bp)
+app.register_blueprint(books_bp)
 
 
 @app.route("/", methods=["GET"])
@@ -37,16 +38,14 @@ def chat():
 def questions():
     return render_template("questions.html")
 
-# @app.route("/llm", methods=["POST"])
-# def llm():
-#     data = request.get_json()
-#     user_input = data.get("message", "")
-#     # Generate response
-#     response = GroqChat.response_text(user_input)
-#     # Log to database
-#     log_chat_to_db(user_input, response)
-#     # Return JSON response
-#     return jsonify({"response": response})
+@app.route("/books_admin", methods=["GET"])
+def books_admin():
+    return render_template("books_admin.html")
+
+@app.route("/view_books", methods=["GET"])
+def view_books():
+    return render_template("view_books.html")
+
 
 
 if __name__ == "__main__":
