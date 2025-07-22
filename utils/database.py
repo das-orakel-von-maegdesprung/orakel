@@ -1,8 +1,11 @@
+# utils/database.py
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from datetime import datetime
 import os
 from threading import Lock
+import dotenv
+dotenv.load_dotenv()
 
 MONGODB_URI = os.getenv("MONGODB_URI")
 
@@ -87,11 +90,12 @@ def _ensure_indexes():
         # Add any additional indexes here if needed
         _indexes_created = True
 
-def log_chat_to_db(user_message, ai_response):
+def log_chat_to_db(user_message, ai_response,email):
     _ensure_indexes()
     get_chat_collection().insert_one({
         "message": user_message,
         "response": ai_response,
+        "email": email,
         "timestamp": datetime.utcnow()
     })
 

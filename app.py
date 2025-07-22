@@ -5,6 +5,8 @@ from datetime import timedelta
 import os
 load_dotenv()
 
+from utils.database import get_chat_collection
+
 from blueprints.auth import auth_bp
 from blueprints.questions import questions_bp
 from blueprints.orakel import orakel_bp
@@ -45,6 +47,19 @@ def books_admin():
 @app.route("/view_books", methods=["GET"])
 def view_books():
     return render_template("view_books.html")
+
+
+@app.route('/logs_admin')
+def logs_admin():
+    chat_collection = get_chat_collection()
+    logs = list(chat_collection.find().sort("timestamp", -1))  # Latest first
+    
+    # Convert MongoDB ObjectIds and timestamps to strings for easier display
+    for log in logs:
+        log["_id"] = str(log["_id"])
+        log["timestamp"] = log["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
+    
+    return render_template('logs_admin.html', logs=logs)
 
 
 

@@ -7,7 +7,6 @@ import numpy as np
 import dotenv
 dotenv.load_dotenv()
 
-
 # Your Gemini API key from environment variable
 gemini_api_key = os.getenv("GEMINI_API_KEY")
 if not gemini_api_key:
@@ -18,6 +17,16 @@ headers = {
     "x-goog-api-key": gemini_api_key,
     "Content-Type": "application/json",
 }
+
+def chunk_text_by_chars(text, max_length_chars=5000):
+    chunks = []
+    start = 0
+    while start < len(text):
+        chunk = text[start:start+max_length_chars]
+        chunks.append(chunk)
+        start += max_length_chars
+    return chunks
+
 
 def chunk_text(text, max_length=256):
     """
@@ -40,6 +49,33 @@ def normalize_embedding(embedding):
         return embedding_np
     return embedding_np / norm
 
+
+
+
+def embed_text(text):
+    print(f"Embedding text: {text[:50]}...")  # Debugging output
+    data = {
+        "model": "models/gemini-embedding-001",
+        "content": {
+            "parts": [{"text": text}]
+        }
+    }
+
+    for attempt in range(3):
+        response = requests.post(api_url, headers=headers, json=data)
+        if response.status_code == 200:
+            result = response.json()
+            # Adapt to the correct response format:
+            if "embedding" in result:
+                embedding = result["embedding"]["values"]
+                normalized = normalize_embedding(embedding)
+                return normalized
+            else:
+                raise RuntimeError(f"Unexpected response format: {result}")
+        else:
+            print(f"Request failed with status {response.status_code}, body: {response.text}, retrying...")
+            time.sleep(5)
+    raise RuntimeError("Failed to get embedding after retries.")
 
 
 def query_gemini_embedding(texts):
@@ -65,23 +101,3 @@ def query_gemini_embedding(texts):
             time.sleep(5)
     raise RuntimeError("Failed to get embeddings after retries.")
 
-
-
-def embed_large_text(text, max_length=256):
-    """
-    Chunk a large text, embed all chunks in a batch, and return embeddings.
-    """
-    chunks = chunk_text(text, max_length=max_length)
-    embeddings = query_gemini_embedding(chunks)
-    return embeddings
-
-if __name__ == "__main__":
-    large_text = (
-        "This is a very long text that you want to embed. "
-        "It might be hundreds or thousands of words long. "
-        "This example just repeats the sentence to simulate a long text. " * 10
-    )
-
-    embeddings = embed_large_text(large_text)
-    print(f"Number of chunks embedded: {len(embeddings)}")
-    print(f"Embedding dimension (per chunk): {len(embeddings[0])}")

@@ -79,10 +79,6 @@ def generate_response(prompt):
     return GroqChat.response_text(prompt)
 
 
-# --- Step 7: Log Chat ---
-def log_chat(user_input, response):
-    log_chat_to_db(user_input, response)
-
 
 # --- Main Route ---
 @orakel_bp.route("/orakel", methods=["POST"])
@@ -113,7 +109,7 @@ def orakel():
         response = generate_response(full_prompt)
 
         # Step 7: Log chat
-        log_chat(user_input, response)
+        log_chat_to_db(user_input, response,email)
 
         # Step 8: Return final response
         return jsonify({"response": response, "prompt": full_prompt})

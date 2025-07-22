@@ -145,84 +145,148 @@
         uploadStatus.textContent = "Upload failed: " + err.message;
       }
     };
+async function loadBooks() {
+  try {
+    const res = await fetch("/get-books");
+    const data = await res.json();
 
-    // Load and display all books
-    async function loadBooks() {
-      try {
-        const res = await fetch("/get-books");
-        const data = await res.json();
+    const bookList = document.getElementById("book-list");
+    bookList.innerHTML = "";
 
-        const bookList = document.getElementById("book-list");
-        bookList.innerHTML = "";
+    data.books.forEach(book => {
+      const bookDiv = document.createElement("div");
+      bookDiv.className = "book";
 
-        data.books.forEach(book => {
-          const bookDiv = document.createElement("div");
-          bookDiv.className = "book";
+      const titleDiv = document.createElement("div");
+      titleDiv.className = "title";
+      titleDiv.textContent = book.title;
 
-          const titleDiv = document.createElement("div");
-          titleDiv.className = "title";
-          titleDiv.textContent = book.title;
+      const previewDiv = document.createElement("div");
+      previewDiv.className = "text-preview";
+//      previewDiv.textContent = book.text.slice(0, 200) + (book.text.length > 200 ? "..." : "");
+      previewDiv.textContent = (book.text ? book.text.slice(0, 200) : "[No text available]") + ((book.text && book.text.length > 200) ? "..." : "");
 
-          const previewDiv = document.createElement("div");
-          previewDiv.className = "text-preview";
-          previewDiv.textContent = book.text.slice(0, 200) + (book.text.length > 200 ? "..." : "");
 
-          const menuBtn = document.createElement("button");
-          menuBtn.className = "menu-button";
-          menuBtn.innerHTML = "⋮";
+      const chunksContainer = document.createElement("div");
+      chunksContainer.style.marginTop = "10px";
+      chunksContainer.style.maxHeight = "200px";
+      chunksContainer.style.overflowY = "auto";
+      chunksContainer.style.background = "#fff";
+      chunksContainer.style.border = "1px solid #ddd";
+      chunksContainer.style.padding = "10px";
+      chunksContainer.style.display = "none"; // hidden initially
 
-          const dropdown = document.createElement("div");
-          dropdown.className = "dropdown";
+      const showChunksBtn = document.createElement("button");
+      showChunksBtn.textContent = "Show Chunks";
+      showChunksBtn.style.marginTop = "10px";
 
-          const deleteBtn = document.createElement("button");
-          deleteBtn.textContent = "Delete";
-          deleteBtn.onclick = async () => {
-            const confirmDelete = confirm(`Are you sure you want to delete "${book.title}"?`);
-            if (confirmDelete) {
-              try {
-                const delRes = await fetch("/delete_book", {
-                  method: "DELETE",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ title: book.title }),
-                });
+      let chunksLoaded = false;
+      showChunksBtn.onclick = async () => {
+        if (!chunksLoaded) {
+          showChunksBtn.textContent = "Loading chunks...";
+          try {
+            const res = await fetch(`/get-book-chunks?title=${encodeURIComponent(book.title)}`);
+            const data = await res.json();
 
-                const result = await delRes.json();
-                if (result.status === "deleted") {
-                  loadBooks();
-                } else {
-                  alert(result.error || "Error deleting book.");
-                }
-              } catch (err) {
-                alert("Error deleting book: " + err.message);
-              }
+            if (data.chunks) {
+              chunksContainer.innerHTML = ""; // clear previous
+         data.chunks.forEach(chunk => {
+  const chunkDiv = document.createElement("div");
+  chunkDiv.style.borderBottom = "1px solid #eee";
+  chunkDiv.style.padding = "5px 0";
+
+  const chunkText = chunk.chunk.slice(0, 100) + (chunk.chunk.length > 100 ? "..." : "");
+  const embeddingPreview = Array.isArray(chunk.embedding) 
+    ? JSON.stringify(chunk.embedding).slice(0, 60) + "..." 
+    : "[No embedding]";
+
+  chunkDiv.innerHTML = `<strong>[${chunk.chunk_index}]</strong> ${chunkText} <br/>
+                        <small>Embedding: ${embeddingPreview}</small>`;
+
+  chunksContainer.appendChild(chunkDiv);
+});
+
+              chunksLoaded = true;
+              showChunksBtn.textContent = "Hide Chunks";
+              chunksContainer.style.display = "block";
+            } else {
+              chunksContainer.textContent = "Failed to load chunks";
+              showChunksBtn.textContent = "Show Chunks";
             }
-          };
+          } catch (err) {
+            chunksContainer.textContent = "Error loading chunks: " + err.message;
+            showChunksBtn.textContent = "Show Chunks";
+          }
+        } else {
+          if (chunksContainer.style.display === "none") {
+            chunksContainer.style.display = "block";
+            showChunksBtn.textContent = "Hide Chunks";
+          } else {
+            chunksContainer.style.display = "none";
+            showChunksBtn.textContent = "Show Chunks";
+          }
+        }
+      };
 
-          dropdown.appendChild(deleteBtn);
+      // The existing menu button and dropdown as you had:
+      const menuBtn = document.createElement("button");
+      menuBtn.className = "menu-button";
+      menuBtn.innerHTML = "⋮";
 
-          bookDiv.appendChild(titleDiv);
-          bookDiv.appendChild(previewDiv);
-          bookDiv.appendChild(menuBtn);
-          bookDiv.appendChild(dropdown);
+      const dropdown = document.createElement("div");
+      dropdown.className = "dropdown";
 
-          bookList.appendChild(bookDiv);
+      const deleteBtn = document.createElement("button");
+      deleteBtn.textContent = "Delete";
+      deleteBtn.onclick = async () => {
+        const confirmDelete = confirm(`Are you sure you want to delete "${book.title}"?`);
+        if (confirmDelete) {
+          try {
+            const delRes = await fetch("/delete_book", {
+              method: "DELETE",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ title: book.title }),
+            });
 
-          // Toggle dropdown menu on menu button click
-          menuBtn.onclick = () => {
-            dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
-          };
-
-          // Hide dropdown when clicking outside
-          document.addEventListener("click", (e) => {
-            if (!bookDiv.contains(e.target)) {
-              dropdown.style.display = "none";
+            const result = await delRes.json();
+            if (result.status === "deleted") {
+              loadBooks();
+            } else {
+              alert(result.error || "Error deleting book.");
             }
-          });
-        });
-      } catch (err) {
-        alert("Failed to load books: " + err.message);
-      }
-    }
+          } catch (err) {
+            alert("Error deleting book: " + err.message);
+          }
+        }
+      };
+
+      dropdown.appendChild(deleteBtn);
+
+      bookDiv.appendChild(titleDiv);
+      bookDiv.appendChild(previewDiv);
+      bookDiv.appendChild(showChunksBtn);
+      bookDiv.appendChild(chunksContainer);
+      bookDiv.appendChild(menuBtn);
+      bookDiv.appendChild(dropdown);
+
+      bookList.appendChild(bookDiv);
+
+      // Toggle dropdown menu on menu button click
+      menuBtn.onclick = () => {
+        dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+      };
+
+      // Hide dropdown when clicking outside
+      document.addEventListener("click", (e) => {
+        if (!bookDiv.contains(e.target)) {
+          dropdown.style.display = "none";
+        }
+      });
+    });
+  } catch (err) {
+    alert("Failed to load books: " + err.message);
+  }
+}
 
     // Load books on page load
     loadBooks();
