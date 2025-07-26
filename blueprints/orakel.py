@@ -1,7 +1,8 @@
 from flask import session, Blueprint, jsonify, request
-from utils.database_auth import find_valid_session_token
+from blueprints.auth import find_valid_session_token
 from utils.database import get_users_collection
-from utils.database import log_chat_to_db
+# from utils.database import log_chat_to_db
+from blueprints.logging import log_chat_to_db
 from utils.ai import GroqChat
 import json
 

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>User Management - Admin</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 10px; border: 1px solid #ccc; text-align: left; }
+    th { background-color: #f5f5f5; }
+    .pending { color: orange; }
+    .accepted { color: green; }
+    .role-btn { margin-right: 5px; }
+  </style>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <a href="/admin" class="admin-btn">Admin Dashboard</a>
+
+
+<h2>👤 User Management (Admin)</h2>
+
+<!-- Invite User -->
+<h3>Invite a New User</h3>
+<input type="email" id="inviteEmail" placeholder="Enter user's email">
+<button onclick="inviteUser()">Send Invite</button>
+<p id="inviteStatus"></p>
+
+<!-- User Table -->
+<h3>Existing Users</h3>
+<table id="userTable">
+  <thead>
+    <tr>
+      <th>Email</th>
+      <th>Status</th>
+      <th>Role</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+async function fetchUsers() {
+  const res = await fetch('/api/users/list');
+  const data = await res.json();
+  const tbody = document.querySelector('#userTable tbody');
+  tbody.innerHTML = '';
+
+  data.users.forEach(user => {
+    const tr = document.createElement('tr');
+    const status = user.verified ? 'accepted' : 'pending';
+    const statusClass = user.verified ? 'accepted' : 'pending';
+
+    tr.innerHTML = `
+      <td>${user.email}</td>
+      <td class="${statusClass}">${status}</td>
+      <td>${user.role || 'user'}</td>
+      <td>
+        <button class="role-btn" onclick="setRole('${user.email}', 'admin')">Make Admin</button>
+        <button class="role-btn" onclick="setRole('${user.email}', 'user')">Make User</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function inviteUser() {
+  const email = document.getElementById('inviteEmail').value.trim();
+  if (!email) return alert("Please enter a valid email.");
+  
+  const res = await fetch('/request-login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email })
+  });
+
+  const data = await res.json();
+  document.getElementById('inviteStatus').innerText = 
+    data.status === 'sent' ? '✅ Invite sent!' : '❌ Failed to send invite.';
+  
+  fetchUsers();  // refresh list
+}
+
+async function setRole(email, role) {
+  const res = await fetch('/api/user/set-role', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, role })
+  });
+
+  const data = await res.json();
+  if (data.status === 'success') {
+    alert(data.message);
+    fetchUsers();
+  } else {
+    alert('Error: ' + data.message);
+  }
+}
+
+// Load users on page load
+fetchUsers();
+</script>
+
+</body>
+</html>

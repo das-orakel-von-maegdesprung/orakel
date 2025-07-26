@@ -3,7 +3,7 @@ from utils.database import get_users_collection
 
 questions_bp = Blueprint("questions", __name__)
 from flask import session
-from utils.database_auth import find_valid_session_token, get_user_data_by_email
+from blueprints.auth import find_valid_session_token, get_user_data_by_email
 
 @questions_bp.route("/save-answers", methods=["POST"])
 def save_answers():

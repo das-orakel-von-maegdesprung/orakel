@@ -1,0 +1,10 @@
+make it actually secure/login/admin.
+user management admin panel.
+
+text prompts and quotes prompts.
+
+move questions editor admin dashboard to frontend instead of json file. 
+
+make it work on vercel.
+vercel dev
+Slight prompt tweaking.
