@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template,  session, redirect
+from flask import Flask, request, render_template,  session, redirect,jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
 from datetime import timedelta
@@ -98,15 +98,27 @@ def prompts_admin():
 @app.route('/logs_admin')
 @admin_required
 def logs_admin():
+    return render_template('logs_admin.html')
+
+@app.route('/api/chat_logs')
+@admin_required
+def get_chat_logs_api():
     chat_collection = get_chat_collection()
-    logs = list(chat_collection.find().sort("timestamp", -1))  # Latest first
-    
-    # Convert MongoDB ObjectIds and timestamps to strings for easier display
+    logs = list(chat_collection.find().sort("timestamp", -1))
+
+    formatted_logs = []
     for log in logs:
-        log["_id"] = str(log["_id"])
-        log["timestamp"] = log["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
-    
-    return render_template('logs_admin.html', logs=logs)
+        formatted_logs.append({
+            "email": log.get("email", ""),
+            "message": log.get("message", ""),
+            "response": log.get("response", ""),
+            "timestamp": log["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
+        })
+
+    return jsonify(formatted_logs)
+
+
+
 
 from blueprints.auth import _set_user_role
 

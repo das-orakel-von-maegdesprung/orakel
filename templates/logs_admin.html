@@ -1,39 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Chat Logs Dashboard</title>
-    <style>
-        body { font-family: Arial, sans-serif; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-        th { background-color: #f4f4f4; }
-    </style>
-      <link rel="stylesheet" href="/styles.css">
+  <meta charset="UTF-8">
+  <title>Chat Logs Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; cursor: pointer; }
+    th.sort-asc::after { content: " ▲"; }
+    th.sort-desc::after { content: " ▼"; }
+    th { background-color: #f4f4f4; }
+    #search-box { margin-top: 10px; padding: 8px; width: 300px; }
+    .admin-btn { display: inline-block; margin: 10px 0; padding: 8px 16px; background: #007BFF; color: white; text-decoration: none; border-radius: 4px; }
+  </style>
 </head>
 <body>
-      <a href="/admin" class="admin-btn">Admin Dashboard</a>
+  <a href="/admin" class="admin-btn">Admin Dashboard</a>
+  <h1>Chat Logs Dashboard</h1>
 
-    <h1>Chat Logs Dashboard</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>Email</th>
-                <th>Message</th>
-                <th>AI Response</th>
-                <th>Timestamp (UTC)</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for log in logs %}
-            <tr>
-                <td>{{ log.email }}</td>
-                <td>{{ log.message }}</td>
-                <td>{{ log.response }}</td>
-                <td>{{ log.timestamp }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+  <input type="text" id="search-box" placeholder="Search by user email...">
+
+  <table id="chat-table">
+    <thead>
+      <tr>
+        <th data-key="email">Email</th>
+        <th data-key="message">Message</th>
+        <th data-key="response">AI Response</th>
+        <th data-key="timestamp">Timestamp (UTC)</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    let chatLogs = [];
+    let sortConfig = { key: 'timestamp', direction: 'desc' };
+
+    async function fetchLogs() {
+      const response = await fetch('/api/chat_logs');
+      chatLogs = await response.json();
+      renderTable();
+    }
+
+    function renderTable() {
+      const tbody = document.querySelector('#chat-table tbody');
+      const searchTerm = document.getElementById('search-box').value.toLowerCase();
+
+      let filteredLogs = chatLogs.filter(log => log.email.toLowerCase().includes(searchTerm));
+
+      filteredLogs.sort((a, b) => {
+        let valA = a[sortConfig.key];
+        let valB = b[sortConfig.key];
+
+        if (sortConfig.key === 'timestamp') {
+          valA = new Date(valA);
+          valB = new Date(valB);
+        }
+
+        if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+
+      tbody.innerHTML = filteredLogs.map(log => `
+        <tr>
+          <td>${log.email}</td>
+          <td>${log.message}</td>
+          <td>${log.response}</td>
+          <td>${log.timestamp}</td>
+        </tr>
+      `).join('');
+    }
+
+    document.querySelectorAll('th[data-key]').forEach(th => {
+      th.addEventListener('click', () => {
+        const key = th.getAttribute('data-key');
+        if (sortConfig.key === key) {
+          sortConfig.direction = sortConfig.direction === 'asc' ? 'desc' : 'asc';
+        } else {
+          sortConfig.key = key;
+          sortConfig.direction = 'asc';
+        }
+
+        document.querySelectorAll('th').forEach(header => header.classList.remove('sort-asc', 'sort-desc'));
+        th.classList.add(sortConfig.direction === 'asc' ? 'sort-asc' : 'sort-desc');
+        renderTable();
+      });
+    });
+
+    document.getElementById('search-box').addEventListener('input', renderTable);
+
+    // Initial load
+    fetchLogs();
+  </script>
 </body>
 </html>

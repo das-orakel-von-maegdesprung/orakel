@@ -41,7 +41,7 @@ def get_db():
 
 
 def get_collection(name) -> pymongo.collection.Collection:
-    _ensure_indexes()
+    # _ensure_indexes()
     if name not in _collections_cache:
         db = get_db()
         _collections_cache[name] = db[name]
@@ -109,7 +109,7 @@ def find_valid_token_by_code(email, code, now):
     })
 
 def mark_token_verified(token_id):
-    # _ensure_indexes()
+    _ensure_indexes()
     get_login_tokens_collection().update_one({"_id": token_id}, {"$set": {"verified": True}})
 
 def ensure_user_exists(email):
