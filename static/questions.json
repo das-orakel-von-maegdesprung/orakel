@@ -1,79 +1,99 @@
 [
   {
-    "name": "first_language",
-    "translations": {
+    "id": "consent_to_answer",
+    "text": {
+      "en": "Do you want to answer some questions about yourself?",
+      "de": "Möchtest du einige Fragen über dich beantworten?"
+    },
+    "answers": {
+      "en": ["Yes", "No"],
+      "de": ["Ja", "Nein"]
+    },
+    "skipAll": true,
+    "other": false
+  },
+  {
+    "id": "first_language",
+    "text": {
       "en": "What is your first language?",
       "de": "Was ist deine Muttersprache?"
     },
-    "options": {
+    "answers": {
       "en": ["German", "English"],
       "de": ["Deutsch", "Englisch"]
-    }
+    },
+    "other": true
   },
   {
-    "name": "belief",
-    "translations": {
+    "id": "belief",
+    "text": {
       "en": "What is your belief?",
       "de": "Was ist dein Glaube?"
     },
-    "options": {
-      "en": ["Christianity", "Islam","Jewisim", "Buddhism", "Hinduism", "Atheist", "Other"],
-      "de": ["Christentum", "Islam","Judentum", "Buddhismus", "Hinduismus", "Atheist", "Andere"]
-    }
+    "answers": {
+      "en": ["Christianity", "Islam", "Buddhism", "Hinduism", "Atheist"],
+      "de": ["Christentum", "Islam", "Buddhismus", "Hinduismus", "Atheist"]
+    },
+    "other": true
   },
   {
-    "name": "family_important",
-    "translations": {
+    "id": "family_important",
+    "text": {
       "en": "Is family important to you?",
       "de": "Ist dir Familie wichtig?"
     },
-    "options": {
+    "answers": {
       "en": ["Yes", "No", "Not sure"],
       "de": ["Ja", "Nein", "Nicht sicher"]
-    }
+    },
+    "other": false
   },
   {
-    "name": "decision_style",
-    "translations": {
+    "id": "decision_style",
+    "text": {
       "en": "Do you follow your heart or your head when making decisions?",
       "de": "Folgest du deinem Herzen oder deinem Verstand bei Entscheidungen?"
     },
-    "options": {
+    "answers": {
       "en": ["Heart", "Head"],
       "de": ["Herz", "Verstand"]
-    }
+    },
+    "other": false
   },
   {
-    "name": "freedom_vs_stability",
-    "translations": {
-      "en": "What’s more important to you—freedom or stability?",
+    "id": "freedom_vs_stability",
+    "text": {
+      "en": "What's more important to you—freedom or stability?",
       "de": "Was ist dir wichtiger – Freiheit oder Stabilität?"
     },
-    "options": {
+    "answers": {
       "en": ["Freedom", "Stability"],
       "de": ["Freiheit", "Stabilität"]
-    }
+    },
+    "other": false
   },
   {
-    "name": "time_connection",
-    "translations": {
+    "id": "time_connection",
+    "text": {
       "en": "Do you feel more connected to the past, present, or future?",
       "de": "Fühlst du dich mehr mit der Vergangenheit, Gegenwart oder Zukunft verbunden?"
     },
-    "options": {
+    "answers": {
       "en": ["Past", "Present", "Future"],
       "de": ["Vergangenheit", "Gegenwart", "Zukunft"]
-    }
+    },
+    "other": false
   },
   {
-    "name": "blame",
-    "translations": {
+    "id": "blame",
+    "text": {
       "en": "When something goes wrong, do you blame yourself or circumstances?",
       "de": "Wenn etwas schiefläuft, gibst du dir selbst oder den Umständen die Schuld?"
     },
-    "options": {
+    "answers": {
       "en": ["Yourself", "Circumstances"],
       "de": ["Dir selbst", "Den Umständen"]
-    }
+    },
+    "other": true
   }
 ]

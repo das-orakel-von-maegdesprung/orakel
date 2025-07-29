@@ -70,8 +70,8 @@ def questions():
         return redirect('/')
 
     user = get_user_data_by_email(record["email"])
-    if user and user.get("answers"):
-        return redirect("/chat")
+    # if user and user.get("answers"):
+        # return redirect("/chat")
     return render_template("questions.html")
 
 

@@ -392,6 +392,8 @@
   </style>
   
 </head>
+
+
 <body>
 
   <!-- Floating background bubbles -->
@@ -441,7 +443,7 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    // Translations
+    // Translations (same as before)
     const translations = {
       de: {
         welcome: "Das Orakel von Mägdesprung",
@@ -456,7 +458,9 @@
         errorSave: "Fehler beim Speichern. Bitte versuche es erneut.",
         selectAnswer: "Bitte wähle eine Antwort aus.",
         langGerman: "Deutsch",
-        langEnglish: "English"
+        langEnglish: "English",
+        skip: "Überspringen",
+        skipAllConfirm: "Möchtest du alle Fragen überspringen?"
       },
       en: {
         welcome: "The Oracle of Mägdesprung",
@@ -471,98 +475,20 @@
         errorSave: "Error saving. Please try again.",
         selectAnswer: "Please select an answer.",
         langGerman: "German",
-        langEnglish: "English"
+        langEnglish: "English",
+        skip: "Skip",
+        skipAllConfirm: "Do you want to skip all questions?"
       }
     };
-
-    // Questions data
-    const questions = [
-      {
-        id: "first_language",
-        text: {
-          en: "What is your first language?",
-          de: "Was ist deine Muttersprache?"
-        },
-        answers: {
-          en: ["German", "English", "Other"],
-          de: ["Deutsch", "Englisch", "Andere"]
-        }
-      },
-      {
-        id: "belief",
-        text: {
-          en: "What is your belief?",
-          de: "Was ist dein Glaube?"
-        },
-        answers: {
-          en: ["Christianity", "Islam", "Buddhism", "Hinduism", "Atheist", "Other"],
-          de: ["Christentum", "Islam", "Buddhismus", "Hinduismus", "Atheist", "Andere"]
-        }
-      },
-      {
-        id: "family_important",
-        text: {
-          en: "Is family important to you?",
-          de: "Ist dir Familie wichtig?"
-        },
-        answers: {
-          en: ["Yes", "No", "Not sure"],
-          de: ["Ja", "Nein", "Nicht sicher"]
-        }
-      },
-      {
-        id: "decision_style",
-        text: {
-          en: "Do you follow your heart or your head when making decisions?",
-          de: "Folgest du deinem Herzen oder deinem Verstand bei Entscheidungen?"
-        },
-        answers: {
-          en: ["Heart", "Head"],
-          de: ["Herz", "Verstand"]
-        }
-      },
-      {
-        id: "freedom_vs_stability",
-        text: {
-          en: "What's more important to you—freedom or stability?",
-          de: "Was ist dir wichtiger – Freiheit oder Stabilität?"
-        },
-        answers: {
-          en: ["Freedom", "Stability"],
-          de: ["Freiheit", "Stabilität"]
-        }
-      },
-      {
-        id: "time_connection",
-        text: {
-          en: "Do you feel more connected to the past, present, or future?",
-          de: "Fühlst du dich mehr mit der Vergangenheit, Gegenwart oder Zukunft verbunden?"
-        },
-        answers: {
-          en: ["Past", "Present", "Future"],
-          de: ["Vergangenheit", "Gegenwart", "Zukunft"]
-        }
-      },
-      {
-        id: "blame",
-        text: {
-          en: "When something goes wrong, do you blame yourself or circumstances?",
-          de: "Wenn etwas schiefläuft, gibst du dir selbst oder den Umständen die Schuld?"
-        },
-        answers: {
-          en: ["Yourself", "Circumstances", "Other"],
-          de: ["Dir selbst", "Den Umständen", "Andere"]
-        }
-      }
-    ];
 
     // State management
     let currentLang = localStorage.getItem('userLang') || (navigator.language.startsWith('en') ? 'en' : 'de');
     let currentQuestion = 0;
     let userAnswers = {};
     let showingWelcome = true;
+    let questions = [];
 
-    // DOM elements
+    // DOM elements (same as before)
     const elements = {
       langToggle: document.getElementById('lang-toggle'),
       langMenu: document.getElementById('lang-menu'),
@@ -674,7 +600,8 @@
         bubble.className = 'answer-bubble';
         bubble.textContent = answer;
         
-        if (answer.toLowerCase().includes('other') || answer.toLowerCase().includes('andere')) {
+        // Use explicit other boolean instead of text check
+        if (question.other === true && index === question.answers[currentLang].length - 1) {
           bubble.classList.add('other-option');
         }
         
@@ -689,11 +616,11 @@
           userAnswers[question.id] = {
             index: index,
             text: answer,
-            isOther: answer.toLowerCase().includes('other') || answer.toLowerCase().includes('andere')
+            isOther: question.other === true && index === question.answers[currentLang].length - 1
           };
           
           // Show other input if needed
-          if (answer.toLowerCase().includes('other') || answer.toLowerCase().includes('andere')) {
+          if (userAnswers[question.id].isOther) {
             elements.otherInput.style.display = 'block';
             elements.otherInput.focus();
             elements.otherInput.placeholder = t('otherPlaceholder');
@@ -707,24 +634,56 @@
         
         elements.answersGrid.appendChild(bubble);
       });
-      
+
+      // Add skip button for all questions except first question's skip all (handled separately)
+      if (currentQuestion !== 0) {
+        const skipBtn = document.createElement('button');
+        skipBtn.className = 'skip-btn nav-btn';
+        skipBtn.textContent = t('skip');
+        skipBtn.style.marginTop = '1em';
+        skipBtn.addEventListener('click', () => {
+          // Mark this question as skipped
+          userAnswers[question.id] = {
+            index: -1,
+            text: 'skipped',
+            isOther: false
+          };
+          // Enable next button and go next
+          elements.nextBtn.disabled = false;
+          if (currentQuestion === questions.length - 1) {
+            submitAnswers();
+          } else {
+            currentQuestion++;
+            renderQuestion();
+          }
+        });
+        elements.answersGrid.appendChild(skipBtn);
+      }
+
       // Restore previous selection
       if (userAnswers[question.id]) {
-        const bubbles = document.querySelectorAll('.answer-bubble');
-        if (bubbles[userAnswers[question.id].index]) {
-          bubbles[userAnswers[question.id].index].classList.add('selected');
-          if (userAnswers[question.id].isOther) {
-            elements.otherInput.style.display = 'block';
-            elements.otherInput.value = userAnswers[question.id].otherText || '';
+        if (userAnswers[question.id].index >= 0) {
+          const bubbles = document.querySelectorAll('.answer-bubble');
+          if (bubbles[userAnswers[question.id].index]) {
+            bubbles[userAnswers[question.id].index].classList.add('selected');
+            if (userAnswers[question.id].isOther) {
+              elements.otherInput.style.display = 'block';
+              elements.otherInput.value = userAnswers[question.id].otherText || '';
+            }
+            elements.nextBtn.disabled = false;
           }
+        } else if (userAnswers[question.id].text === 'skipped') {
+          // If skipped, next button enabled
           elements.nextBtn.disabled = false;
         }
+      } else {
+        // No answer selected yet - disable next button
+        elements.nextBtn.disabled = true;
       }
       
       // Update navigation
       elements.prevBtn.disabled = currentQuestion === 0;
       elements.nextBtn.textContent = currentQuestion === questions.length - 1 ? t('finish') : t('next');
-      elements.nextBtn.disabled = !userAnswers[question.id];
       
       renderProgressDots();
       updateProgressBar();
@@ -741,7 +700,7 @@
       try {
         elements.nextBtn.disabled = true;
         elements.nextBtn.textContent = 'Saving...';
-        
+
         // Save other input if visible
         if (elements.otherInput.style.display === 'block') {
           const currentQ = questions[currentQuestion];
@@ -750,72 +709,83 @@
           }
         }
 
+        const formattedAnswers = questions.map(q => {
+          const answerData = userAnswers[q.id];
+          if (!answerData) return `question: ${q.text[currentLang]} answer: (no response)`;
 
-            const formattedAnswers = questions.map(q => {
-      const answerData = userAnswers[q.id];
-      if (!answerData) return `question: ${q.text[currentLang]} answer: (no response)`;
+          if (answerData.text === 'skipped') {
+            return `question: ${q.text[currentLang]} answer: skipped`;
+          }
 
-      const answerText = answerData.isOther && answerData.otherText
-        ? answerData.otherText
-        : answerData.text;
+          const answerText = answerData.isOther && answerData.otherText
+            ? answerData.otherText
+            : answerData.text;
 
-      return `question: ${q.text[currentLang]} answer: ${answerText}`;
-    });
-
-
+          return `question: ${q.text[currentLang]} answer: ${answerText}`;
+        });
 
         console.log('Submitting answers:', formattedAnswers);
         console.log('Current language:', currentLang);
-        
-       const payload = {
 
-      answers: formattedAnswers,
-      language: currentLang,         // Changed "lang" to "language" to match the Flask route
-    };
+        const payload = {
+          answers: formattedAnswers,
+          language: currentLang,
+        };
 
-    console.log('Submitting answers:', payload);
-    const response = await fetch('/save-answers', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload)
-    });
+        const response = await fetch('/save-answers', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload)
+        });
 
-    const result = await response.json();
-    console.log('Response from server:', result);
+        const result = await response.json();
+        console.log('Response from server:', result);
 
-    if (response.ok) {
-      if (result.status === 'saved'){
-   console.log('Saved:', result);
-   window.location.href = '/chat'; // Redirect to chat page
-      } else {
-        console.error('Error saving:', result.error || 'Unknown error');
-        showToast(t('errorSave'));
-        elements.nextBtn.disabled = false;
-        elements.nextBtn.textContent = t('finish');
-        return;
-      }
-   
-      // Proceed to next UI step or notify user
-    } else {
-      console.error('Error saving:', result.error || 'Unknown error');
-    //  alert('Failed to save answers.');
-    }
+        if (response.ok) {
+          if (result.status === 'saved') {
+            console.log('Saved:', result);
+            window.location.href = '/chat'; // Redirect to chat page
+          } else {
+            console.error('Error saving:', result.error || 'Unknown error');
+            showToast(t('errorSave'));
+            elements.nextBtn.disabled = false;
+            elements.nextBtn.textContent = t('finish');
+            return;
+          }
+        } else {
+          console.error('Error saving:', result.error || 'Unknown error');
+          showToast(t('errorSave'));
+          elements.nextBtn.disabled = false;
+          elements.nextBtn.textContent = t('finish');
+          return;
+        }
 
-  
         showToast(t('answersSaved'));
-        
-      //  setTimeout(() => {
-        //  window.location.href = '/chat';
-        //}, 2000);
-        
+
       } catch (error) {
         console.error('Error saving answers:', error);
         showToast(t('errorSave'));
         elements.nextBtn.disabled = false;
         elements.nextBtn.textContent = t('finish');
       }
+    }
+
+    // Special handler for skip all on first question
+    function skipAllQuestions() {
+      if (!confirm(t('skipAllConfirm'))) return;
+
+      // Mark all questions as skipped
+      questions.forEach(q => {
+        userAnswers[q.id] = {
+          index: -1,
+          text: 'skipped',
+          isOther: false
+        };
+      });
+
+      submitAnswers();
     }
 
     // Event listeners
@@ -833,7 +803,22 @@
       }
     });
 
-    elements.startBtn.addEventListener('click', startQuestionnaire);
+    elements.startBtn.addEventListener('click', () => {
+      // If first question has skipAll true, add skip all button before start
+      const firstQuestion = questions[0];
+      if (firstQuestion && firstQuestion.skipAll === true) {
+        // Show skip all prompt button alongside normal start button
+        const skipAllBtn = document.createElement('button');
+        skipAllBtn.textContent = t('skip');
+        skipAllBtn.className = 'nav-btn';
+        skipAllBtn.style.marginLeft = '10px';
+        skipAllBtn.addEventListener('click', skipAllQuestions);
+
+        // Append next to start button
+        elements.startBtn.parentNode.appendChild(skipAllBtn);
+      }
+      startQuestionnaire();
+    });
 
     elements.prevBtn.addEventListener('click', () => {
       if (currentQuestion > 0) {
@@ -877,9 +862,32 @@
       }
     });
 
-    // Initialize
+    // Initialize floating bubbles and update language, but show quiz only after fetch
     createFloatingBubbles();
     updateLanguage();
+
+    // Fetch questions.json then show welcome screen and enable start button
+    fetch('./questions.json')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        questions = data;
+
+        // Show welcome screen and enable start button only after questions loaded
+        elements.welcomeScreen.style.display = 'block';
+        elements.startBtn.disabled = false;
+
+        updateLanguage(); // to update texts if needed
+      })
+      .catch(error => {
+        console.error('There was a problem fetching questions:', error);
+        elements.welcomeScreen.innerHTML = `<p style="color:red;">Error loading questions. Please try again later.</p>`;
+      });
+
   </script>
 </body>
 </html>
