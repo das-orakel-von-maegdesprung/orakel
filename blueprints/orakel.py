@@ -66,12 +66,13 @@ def build_full_prompt(user_input, answers, language):
 
     return f"""{base_prompt}
 
-User message: {user_input}
-
-User profile:
+Die Antworten des Nutzers:
 {answers}
 
-Respond in the user's preferred language: {language}
+Antworte immer in der sprache des nuzers: {language}
+
+Nutzer Nachicht: {user_input}
+
 """
 
 

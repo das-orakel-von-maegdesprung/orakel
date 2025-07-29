@@ -443,6 +443,7 @@
   <div class="toast" id="toast"></div>
 
   <script>
+    
     // Translations (same as before)
     const translations = {
       de: {
@@ -480,366 +481,215 @@
         skipAllConfirm: "Do you want to skip all questions?"
       }
     };
+// State management
+let currentLang = localStorage.getItem('userLang') || (navigator.language.startsWith('en') ? 'en' : 'de');
+let currentQuestion = 0;
+let userAnswers = {};
+let showingWelcome = true;
+let questions = [];
 
-    // State management
-    let currentLang = localStorage.getItem('userLang') || (navigator.language.startsWith('en') ? 'en' : 'de');
-    let currentQuestion = 0;
-    let userAnswers = {};
-    let showingWelcome = true;
-    let questions = [];
+// DOM elements
+const elements = {
+  langToggle: document.getElementById('lang-toggle'),
+  langMenu: document.getElementById('lang-menu'),
+  langFlag: document.getElementById('lang-flag'),
+  langLabel: document.getElementById('lang-label'),
+  welcomeScreen: document.getElementById('welcome-screen'),
+  questionContainer: document.getElementById('question-container'),
+  welcomeTitle: document.getElementById('welcome-title'),
+  welcomeSubtitle: document.getElementById('welcome-subtitle'),
+  startBtn: document.getElementById('start-btn'),
+  questionNumber: document.getElementById('question-number'),
+  questionText: document.getElementById('question-text'),
+  answersGrid: document.getElementById('answers-grid'),
+  otherInput: document.getElementById('other-input'),
+  prevBtn: document.getElementById('prev-btn'),
+  nextBtn: document.getElementById('next-btn'),
+  progressDots: document.getElementById('progress-dots'),
+  progressBar: document.getElementById('progress-bar'),
+  toast: document.getElementById('toast')
+};
 
-    // DOM elements (same as before)
-    const elements = {
-      langToggle: document.getElementById('lang-toggle'),
-      langMenu: document.getElementById('lang-menu'),
-      langFlag: document.getElementById('lang-flag'),
-      langLabel: document.getElementById('lang-label'),
-      welcomeScreen: document.getElementById('welcome-screen'),
-      questionContainer: document.getElementById('question-container'),
-      welcomeTitle: document.getElementById('welcome-title'),
-      welcomeSubtitle: document.getElementById('welcome-subtitle'),
-      startBtn: document.getElementById('start-btn'),
-      questionNumber: document.getElementById('question-number'),
-      questionText: document.getElementById('question-text'),
-      answersGrid: document.getElementById('answers-grid'),
-      otherInput: document.getElementById('other-input'),
-      prevBtn: document.getElementById('prev-btn'),
-      nextBtn: document.getElementById('next-btn'),
-      progressDots: document.getElementById('progress-dots'),
-      progressBar: document.getElementById('progress-bar'),
-      toast: document.getElementById('toast')
-    };
+// Helper functions
+function t(key, params = {}) {
+  let text = translations[currentLang][key] || key;
+  Object.entries(params).forEach(([k, v]) => {
+    text = text.replace(`{${k}}`, v);
+  });
+  return text;
+}
 
-    // Helper functions
-    function t(key, params = {}) {
-      let text = translations[currentLang][key] || key;
-      Object.entries(params).forEach(([k, v]) => {
-        text = text.replace(`{${k}}`, v);
-      });
-      return text;
+function showToast(message) {
+  elements.toast.textContent = message;
+  elements.toast.classList.add('show');
+  setTimeout(() => {
+    elements.toast.classList.remove('show');
+  }, 3000);
+}
+
+function updateLanguage() {
+  elements.langFlag.textContent = currentLang === 'de' ? '🇩🇪' : '🇬🇧';
+  elements.langLabel.textContent = t(currentLang === 'de' ? 'langGerman' : 'langEnglish');
+  
+  if (showingWelcome) {
+    elements.welcomeTitle.textContent = t('welcome');
+    elements.welcomeSubtitle.textContent = t('welcomeSubtitle');
+    elements.startBtn.textContent = t('start');
+  } else {
+    renderQuestion();
+  }
+}
+
+function createFloatingBubbles() {
+  const container = document.getElementById('floating-bubbles');
+  for (let i = 0; i < 15; i++) {
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.style.left = Math.random() * 100 + '%';
+    bubble.style.top = Math.random() * 100 + '%';
+    bubble.style.width = bubble.style.height = Math.random() * 60 + 20 + 'px';
+    bubble.style.animationDelay = Math.random() * 6 + 's';
+    bubble.style.animationDuration = Math.random() * 4 + 4 + 's';
+    container.appendChild(bubble);
+  }
+}
+
+function renderProgressDots() {
+  elements.progressDots.innerHTML = '';
+  questions.forEach((_, index) => {
+    const dot = document.createElement('div');
+    dot.className = 'progress-dot';
+    if (index < currentQuestion) {
+      dot.classList.add('completed');
+    } else if (index === currentQuestion) {
+      dot.classList.add('active');
     }
-
-    function showToast(message) {
-      elements.toast.textContent = message;
-      elements.toast.classList.add('show');
-      setTimeout(() => {
-        elements.toast.classList.remove('show');
-      }, 3000);
-    }
-
-    function updateLanguage() {
-      elements.langFlag.textContent = currentLang === 'de' ? '🇩🇪' : '🇬🇧';
-      elements.langLabel.textContent = t(currentLang === 'de' ? 'langGerman' : 'langEnglish');
-      
-      if (showingWelcome) {
-        elements.welcomeTitle.textContent = t('welcome');
-        elements.welcomeSubtitle.textContent = t('welcomeSubtitle');
-        elements.startBtn.textContent = t('start');
-      } else {
+    dot.addEventListener('click', () => {
+      if (index < currentQuestion) {
+        currentQuestion = index;
         renderQuestion();
       }
-    }
+    });
+    elements.progressDots.appendChild(dot);
+  });
+}
 
-    function createFloatingBubbles() {
-      const container = document.getElementById('floating-bubbles');
-      for (let i = 0; i < 15; i++) {
-        const bubble = document.createElement('div');
-        bubble.className = 'bubble';
-        bubble.style.left = Math.random() * 100 + '%';
-        bubble.style.top = Math.random() * 100 + '%';
-        bubble.style.width = bubble.style.height = Math.random() * 60 + 20 + 'px';
-        bubble.style.animationDelay = Math.random() * 6 + 's';
-        bubble.style.animationDuration = Math.random() * 4 + 4 + 's';
-        container.appendChild(bubble);
-      }
-    }
+function updateProgressBar() {
+  const progress = ((currentQuestion + 1) / questions.length) * 100;
+  elements.progressBar.style.width = progress + '%';
+}
 
-    function renderProgressDots() {
-      elements.progressDots.innerHTML = '';
-      questions.forEach((_, index) => {
-        const dot = document.createElement('div');
-        dot.className = 'progress-dot';
-        if (index < currentQuestion) {
-          dot.classList.add('completed');
-        } else if (index === currentQuestion) {
-          dot.classList.add('active');
-        }
-        dot.addEventListener('click', () => {
-          if (index < currentQuestion) {
-            currentQuestion = index;
-            renderQuestion();
-          }
-        });
-        elements.progressDots.appendChild(dot);
-      });
-    }
-
-    function updateProgressBar() {
-      const progress = ((currentQuestion + 1) / questions.length) * 100;
-      elements.progressBar.style.width = progress + '%';
-    }
-
-    function renderQuestion() {
-      const question = questions[currentQuestion];
+function renderQuestion() {
+  const question = questions[currentQuestion];
+  
+  elements.questionNumber.textContent = t('questionProgress', {
+    current: currentQuestion + 1,
+    total: questions.length
+  });
+  
+  elements.questionText.textContent = question.text[currentLang];
+  
+  // Clear previous answers
+  elements.answersGrid.innerHTML = '';
+  elements.otherInput.style.display = 'none';
+  elements.otherInput.value = '';
+  
+  // Render answer bubbles
+  question.answers[currentLang].forEach((answer, index) => {
+    const bubble = document.createElement('div');
+    bubble.className = 'answer-bubble';
+    bubble.textContent = answer;
+    
+    bubble.addEventListener('click', () => {
+      // Clear all selections
+      document.querySelectorAll('.answer-bubble').forEach(b => b.classList.remove('selected'));
       
-      elements.questionNumber.textContent = t('questionProgress', {
-        current: currentQuestion + 1,
-        total: questions.length
-      });
+      // Select this bubble
+      bubble.classList.add('selected');
       
-      elements.questionText.textContent = question.text[currentLang];
+      // Store answer
+      userAnswers[question.id] = {
+        index: index,
+        text: answer,
+        isOther: false
+      };
       
-      // Clear previous answers
-      elements.answersGrid.innerHTML = '';
+      // Hide other input (since this is a normal option)
       elements.otherInput.style.display = 'none';
       elements.otherInput.value = '';
       
-      // Render answer bubbles
-      question.answers[currentLang].forEach((answer, index) => {
-        const bubble = document.createElement('div');
-        bubble.className = 'answer-bubble';
-        bubble.textContent = answer;
-        
-        // Use explicit other boolean instead of text check
-        if (question.other === true && index === question.answers[currentLang].length - 1) {
-          bubble.classList.add('other-option');
-        }
-        
-        bubble.addEventListener('click', () => {
-          // Clear all selections
-          document.querySelectorAll('.answer-bubble').forEach(b => b.classList.remove('selected'));
-          
-          // Select this bubble
-          bubble.classList.add('selected');
-          
-          // Store answer
-          userAnswers[question.id] = {
-            index: index,
-            text: answer,
-            isOther: question.other === true && index === question.answers[currentLang].length - 1
-          };
-          
-          // Show other input if needed
-          if (userAnswers[question.id].isOther) {
-            elements.otherInput.style.display = 'block';
-            elements.otherInput.focus();
-            elements.otherInput.placeholder = t('otherPlaceholder');
-          } else {
-            elements.otherInput.style.display = 'none';
-          }
-          
-          // Enable next button
-          elements.nextBtn.disabled = false;
-        });
-        
-        elements.answersGrid.appendChild(bubble);
-      });
-
-      // Add skip button for all questions except first question's skip all (handled separately)
-      if (currentQuestion !== 0) {
-        const skipBtn = document.createElement('button');
-        skipBtn.className = 'skip-btn nav-btn';
-        skipBtn.textContent = t('skip');
-        skipBtn.style.marginTop = '1em';
-        skipBtn.addEventListener('click', () => {
-          // Mark this question as skipped
-          userAnswers[question.id] = {
-            index: -1,
-            text: 'skipped',
-            isOther: false
-          };
-          // Enable next button and go next
-          elements.nextBtn.disabled = false;
-          if (currentQuestion === questions.length - 1) {
-            submitAnswers();
-          } else {
-            currentQuestion++;
-            renderQuestion();
-          }
-        });
-        elements.answersGrid.appendChild(skipBtn);
-      }
-
-      // Restore previous selection
-      if (userAnswers[question.id]) {
-        if (userAnswers[question.id].index >= 0) {
-          const bubbles = document.querySelectorAll('.answer-bubble');
-          if (bubbles[userAnswers[question.id].index]) {
-            bubbles[userAnswers[question.id].index].classList.add('selected');
-            if (userAnswers[question.id].isOther) {
-              elements.otherInput.style.display = 'block';
-              elements.otherInput.value = userAnswers[question.id].otherText || '';
-            }
-            elements.nextBtn.disabled = false;
-          }
-        } else if (userAnswers[question.id].text === 'skipped') {
-          // If skipped, next button enabled
-          elements.nextBtn.disabled = false;
-        }
-      } else {
-        // No answer selected yet - disable next button
-        elements.nextBtn.disabled = true;
-      }
-      
-      // Update navigation
-      elements.prevBtn.disabled = currentQuestion === 0;
-      elements.nextBtn.textContent = currentQuestion === questions.length - 1 ? t('finish') : t('next');
-      
-      renderProgressDots();
-      updateProgressBar();
-    }
-
-    function startQuestionnaire() {
-      showingWelcome = false;
-      elements.welcomeScreen.style.display = 'none';
-      elements.questionContainer.style.display = 'block';
-      renderQuestion();
-    }
-
-    async function submitAnswers() {
-      try {
-        elements.nextBtn.disabled = true;
-        elements.nextBtn.textContent = 'Saving...';
-
-        // Save other input if visible
-        if (elements.otherInput.style.display === 'block') {
-          const currentQ = questions[currentQuestion];
-          if (userAnswers[currentQ.id]) {
-            userAnswers[currentQ.id].otherText = elements.otherInput.value.trim();
-          }
-        }
-
-        const formattedAnswers = questions.map(q => {
-          const answerData = userAnswers[q.id];
-          if (!answerData) return `question: ${q.text[currentLang]} answer: (no response)`;
-
-          if (answerData.text === 'skipped') {
-            return `question: ${q.text[currentLang]} answer: skipped`;
-          }
-
-          const answerText = answerData.isOther && answerData.otherText
-            ? answerData.otherText
-            : answerData.text;
-
-          return `question: ${q.text[currentLang]} answer: ${answerText}`;
-        });
-
-        console.log('Submitting answers:', formattedAnswers);
-        console.log('Current language:', currentLang);
-
-        const payload = {
-          answers: formattedAnswers,
-          language: currentLang,
-        };
-
-        const response = await fetch('/save-answers', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload)
-        });
-
-        const result = await response.json();
-        console.log('Response from server:', result);
-
-        if (response.ok) {
-          if (result.status === 'saved') {
-            console.log('Saved:', result);
-            window.location.href = '/chat'; // Redirect to chat page
-          } else {
-            console.error('Error saving:', result.error || 'Unknown error');
-            showToast(t('errorSave'));
-            elements.nextBtn.disabled = false;
-            elements.nextBtn.textContent = t('finish');
-            return;
-          }
-        } else {
-          console.error('Error saving:', result.error || 'Unknown error');
-          showToast(t('errorSave'));
-          elements.nextBtn.disabled = false;
-          elements.nextBtn.textContent = t('finish');
-          return;
-        }
-
-        showToast(t('answersSaved'));
-
-      } catch (error) {
-        console.error('Error saving answers:', error);
-        showToast(t('errorSave'));
-        elements.nextBtn.disabled = false;
-        elements.nextBtn.textContent = t('finish');
-      }
-    }
-
-    // Special handler for skip all on first question
-    function skipAllQuestions() {
-      if (!confirm(t('skipAllConfirm'))) return;
-
-      // Mark all questions as skipped
-      questions.forEach(q => {
-        userAnswers[q.id] = {
-          index: -1,
-          text: 'skipped',
-          isOther: false
-        };
-      });
-
-      submitAnswers();
-    }
-
-    // Event listeners
-    elements.langToggle.addEventListener('click', () => {
-      const isOpen = elements.langMenu.style.display === 'block';
-      elements.langMenu.style.display = isOpen ? 'none' : 'block';
+      elements.nextBtn.disabled = false;
     });
+    
+    elements.answersGrid.appendChild(bubble);
+  });
 
-    elements.langMenu.addEventListener('click', (e) => {
-      if (e.target.dataset.lang) {
-        currentLang = e.target.dataset.lang;
-        localStorage.setItem('userLang', currentLang);
-        elements.langMenu.style.display = 'none';
-        updateLanguage();
-      }
-    });
-
-    elements.startBtn.addEventListener('click', () => {
-      // If first question has skipAll true, add skip all button before start
-      const firstQuestion = questions[0];
-      if (firstQuestion && firstQuestion.skipAll === true) {
-        // Show skip all prompt button alongside normal start button
-        const skipAllBtn = document.createElement('button');
-        skipAllBtn.textContent = t('skip');
-        skipAllBtn.className = 'nav-btn';
-        skipAllBtn.style.marginLeft = '10px';
-        skipAllBtn.addEventListener('click', skipAllQuestions);
-
-        // Append next to start button
-        elements.startBtn.parentNode.appendChild(skipAllBtn);
-      }
-      startQuestionnaire();
-    });
-
-    elements.prevBtn.addEventListener('click', () => {
-      if (currentQuestion > 0) {
-        currentQuestion--;
-        renderQuestion();
-      }
-    });
-
-    elements.nextBtn.addEventListener('click', () => {
-      const currentQ = questions[currentQuestion];
+  // If other === true, add an "Other" option bubble
+  if (question.other) {
+    const otherBubble = document.createElement('div');
+    otherBubble.className = 'answer-bubble other-option';
+    otherBubble.textContent = currentLang === 'de' ? 'Andere' : 'Other';
+    otherBubble.addEventListener('click', () => {
+      document.querySelectorAll('.answer-bubble').forEach(b => b.classList.remove('selected'));
+      otherBubble.classList.add('selected');
       
-      if (!userAnswers[currentQ.id]) {
-        showToast(t('selectAnswer'));
-        return;
-      }
+      userAnswers[question.id] = {
+        index: question.answers[currentLang].length, // index after last answer
+        text: otherBubble.textContent,
+        isOther: true,
+        otherText: elements.otherInput.value.trim()
+      };
       
-      // Save other input if visible
-      if (elements.otherInput.style.display === 'block') {
-        userAnswers[currentQ.id].otherText = elements.otherInput.value.trim();
-      }
+      elements.otherInput.style.display = 'block';
+      elements.otherInput.placeholder = t('otherPlaceholder');
+      elements.otherInput.focus();
       
+      elements.nextBtn.disabled = false;
+    });
+    elements.answersGrid.appendChild(otherBubble);
+  }
+  
+  // Restore previous selection
+  if (userAnswers[question.id]) {
+    const bubbles = document.querySelectorAll('.answer-bubble');
+    const answerData = userAnswers[question.id];
+    if (bubbles[answerData.index]) {
+      bubbles[answerData.index].classList.add('selected');
+      if (answerData.isOther) {
+        elements.otherInput.style.display = 'block';
+        elements.otherInput.value = answerData.otherText || '';
+        elements.otherInput.placeholder = t('otherPlaceholder');
+      }
+      elements.nextBtn.disabled = false;
+    }
+  } else {
+    // If no previous answer, disable next
+    elements.nextBtn.disabled = true;
+  }
+  
+  // Update navigation
+  elements.prevBtn.disabled = currentQuestion === 0;
+  elements.nextBtn.textContent = currentQuestion === questions.length - 1 ? t('finish') : t('next');
+
+  // Add Skip button if not first question
+  let skipBtn = document.getElementById('skip-btn');
+  if (!skipBtn) {
+    skipBtn = document.createElement('button');
+    skipBtn.id = 'skip-btn';
+    skipBtn.className = 'nav-btn skip-btn';
+    skipBtn.textContent = currentLang === 'de' ? 'Überspringen' : 'Skip';
+    skipBtn.style.marginRight = '10px';
+    elements.nextBtn.parentNode.insertBefore(skipBtn, elements.nextBtn);
+    
+    skipBtn.addEventListener('click', () => {
+      userAnswers[question.id] = {
+        index: -1,
+        text: 'skipped',
+        isOther: false
+      };
+      // Enable next to continue
+      elements.nextBtn.disabled = false;
+      // Move to next question or submit if last
       if (currentQuestion === questions.length - 1) {
         submitAnswers();
       } else {
@@ -847,46 +697,207 @@
         renderQuestion();
       }
     });
+  }
+  
+  // Hide skip button for first question (consent)
+  if (currentQuestion === 0) {
+    skipBtn.style.display = 'none';
+  } else {
+    skipBtn.style.display = 'inline-block';
+  }
 
-    elements.otherInput.addEventListener('input', () => {
+  renderProgressDots();
+  updateProgressBar();
+}
+
+function startQuestionnaire() {
+  showingWelcome = false;
+  elements.welcomeScreen.style.display = 'none';
+  elements.questionContainer.style.display = 'block';
+  renderQuestion();
+}
+
+async function submitAnswers() {
+  try {
+    elements.nextBtn.disabled = true;
+    elements.nextBtn.textContent = currentLang === 'de' ? 'Speichern...' : 'Saving...';
+
+    // Save other input if visible
+    if (elements.otherInput.style.display === 'block') {
       const currentQ = questions[currentQuestion];
       if (userAnswers[currentQ.id]) {
         userAnswers[currentQ.id].otherText = elements.otherInput.value.trim();
       }
-    });
+    }
 
-    // Close language menu when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!elements.langToggle.contains(e.target)) {
-        elements.langMenu.style.display = 'none';
+    // If user answered NO to first question (consent), mark all as skipped
+    if (questions[0].id === 'consent_to_answer' && userAnswers['consent_to_answer']) {
+      const consentAnswer = userAnswers['consent_to_answer'].text.toLowerCase();
+      if (consentAnswer === 'no' || consentAnswer === 'nein') {
+        questions.forEach(q => {
+          userAnswers[q.id] = {
+            index: -1,
+            text: 'skipped',
+            isOther: false
+          };
+        });
       }
+    }
+
+    const formattedAnswers = questions.map(q => {
+      const answerData = userAnswers[q.id];
+      if (!answerData) return `question: ${q.text[currentLang]} answer: (no response)`;
+
+      const answerText = answerData.isOther && answerData.otherText
+        ? answerData.otherText
+        : answerData.text;
+
+      return `question: ${q.text[currentLang]} answer: ${answerText}`;
     });
 
-    // Initialize floating bubbles and update language, but show quiz only after fetch
-    createFloatingBubbles();
+    console.log('Submitting answers:', formattedAnswers);
+    console.log('Current language:', currentLang);
+    
+    const payload = {
+      answers: formattedAnswers,
+      language: currentLang,
+    };
+
+    const response = await fetch('/save-answers', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const result = await response.json();
+    console.log('Response from server:', result);
+
+    if (response.ok) {
+      if (result.status === 'saved'){
+        console.log('Saved:', result);
+        window.location.href = '/chat'; // Redirect to chat page
+      } else {
+        console.error('Error saving:', result.error || 'Unknown error');
+        showToast(t('errorSave'));
+        elements.nextBtn.disabled = false;
+        elements.nextBtn.textContent = t('finish');
+        return;
+      }
+    } else {
+      console.error('Error saving:', result.error || 'Unknown error');
+      showToast(t('errorSave'));
+      elements.nextBtn.disabled = false;
+      elements.nextBtn.textContent = t('finish');
+    }
+    
+  } catch (error) {
+    console.error('Error saving answers:', error);
+    showToast(t('errorSave'));
+    elements.nextBtn.disabled = false;
+    elements.nextBtn.textContent = t('finish');
+  }
+}
+
+// Event listeners
+elements.langToggle.addEventListener('click', () => {
+  const isOpen = elements.langMenu.style.display === 'block';
+  elements.langMenu.style.display = isOpen ? 'none' : 'block';
+});
+
+elements.langMenu.addEventListener('click', (e) => {
+  if (e.target.dataset.lang) {
+    currentLang = e.target.dataset.lang;
+    localStorage.setItem('userLang', currentLang);
+    elements.langMenu.style.display = 'none';
     updateLanguage();
+  }
+});
 
-    // Fetch questions.json then show welcome screen and enable start button
-    fetch('./questions.json')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then(data => {
-        questions = data;
+elements.startBtn.addEventListener('click', startQuestionnaire);
 
-        // Show welcome screen and enable start button only after questions loaded
-        elements.welcomeScreen.style.display = 'block';
-        elements.startBtn.disabled = false;
+elements.prevBtn.addEventListener('click', () => {
+  if (currentQuestion > 0) {
+    currentQuestion--;
+    renderQuestion();
+  }
+});
 
-        updateLanguage(); // to update texts if needed
-      })
-      .catch(error => {
-        console.error('There was a problem fetching questions:', error);
-        elements.welcomeScreen.innerHTML = `<p style="color:red;">Error loading questions. Please try again later.</p>`;
-      });
+elements.nextBtn.addEventListener('click', () => {
+  const currentQ = questions[currentQuestion];
+  if (!userAnswers[currentQ.id]) {
+    showToast(t('selectAnswer'));
+    return;
+  }
+
+  // Save other input if visible
+  if (elements.otherInput.style.display === 'block') {
+    userAnswers[currentQ.id].otherText = elements.otherInput.value.trim();
+  }
+
+  // Check if current question has skipAll flag and answer is "No"
+  if (
+    currentQ.skipAll &&
+    (userAnswers[currentQ.id].text.toLowerCase() === 'no' ||
+     userAnswers[currentQ.id].text.toLowerCase() === 'nein')
+  ) {
+    // Mark all questions as skipped
+    questions.forEach(q => {
+      userAnswers[q.id] = {
+        index: -1,
+        text: 'skipped',
+        isOther: false
+      };
+    });
+    // Submit immediately
+    submitAnswers();
+    return;
+  }
+
+  // Normal flow: next question or submit if last
+  if (currentQuestion === questions.length - 1) {
+    submitAnswers();
+  } else {
+    currentQuestion++;
+    renderQuestion();
+  }
+});
+
+
+elements.otherInput.addEventListener('input', () => {
+  const currentQ = questions[currentQuestion];
+  if (userAnswers[currentQ.id]) {
+    userAnswers[currentQ.id].otherText = elements.otherInput.value.trim();
+  }
+});
+
+// Close language menu when clicking outside
+document.addEventListener('click', (e) => {
+  if (!elements.langToggle.contains(e.target)) {
+    elements.langMenu.style.display = 'none';
+  }
+});
+
+// Initialize bubbles and update language only AFTER fetching questions:
+function initializeApp() {
+  createFloatingBubbles();
+  updateLanguage();
+}
+
+fetch('./questions.json')
+  .then(response => {
+    if (!response.ok) throw new Error('Network response was not ok');
+    return response.json();
+  })
+  .then(data => {
+    questions = data;
+    initializeApp();
+  })
+  .catch(error => {
+    console.error('There was a problem fetching questions:', error);
+    showToast('Error loading questions.');
+  });
 
   </script>
 </body>
