@@ -1,3 +1,4 @@
+//translations.js
 // shared translations and helper function
 const translations = {
   de: {
@@ -21,7 +22,15 @@ const translations = {
     selectAnswer: "Antwort auswählen",
     languageOverlayTitle: "Willkommen! / Welcome!",
     languagePrompt: "Bitte wähle eine Sprache / Please select a language",
-    emailStepTitle: "Willkommen beim Orakel von Mägdesprung"
+    emailStepTitle: "Willkommen beim Orakel von Mägdesprung",
+
+    chatTitle: "Frage das Orakel",
+    chatSubtitle: "Stelle deine Frage und erhalte Weisheit aus Mägdesprung",
+    oracleLabel: "Orakel:",
+    emptyState: "Willkommen! Stelle deine erste Frage an das Orakel von Mägdesprung.",
+    typingIndicator: "Orakel denkt nach",
+    chatPlaceholder: "Schreibe deine Frage hier...",
+    buttonText: "Fragen",
   },
   en: {
     welcome: "Welcome to the Oracle of Mägdesprung",
@@ -44,14 +53,54 @@ const translations = {
     selectAnswer: "Select answer",
     languageOverlayTitle: "Welcome! / Willkommen!",
     languagePrompt: "Please select a language / Bitte wähle eine Sprache",
-    emailStepTitle: "Welcome to the Oracle of Mägdesprung"
+    emailStepTitle: "Welcome to the Oracle of Mägdesprung",
+
+    chatTitle: "Ask the Oracle",
+    chatSubtitle: "Ask your question and receive wisdom from Mägdesprung",
+    oracleLabel: "Oracle:",
+    emptyState: "Welcome! Ask your first question to the Oracle of Mägdesprung.",
+    typingIndicator: "Oracle is thinking",
+    chatPlaceholder: "Write your question here...",
+    buttonText: "Ask",
   }
 };
 
 function t(key, params = {}, userLang) {
-  let txt = translations[userLang][key] || key;
+  const lang = translations[userLang] ? userLang : 'en'; // fallback to English if undefined
+  let txt = translations[lang][key] || key;
   Object.entries(params).forEach(([k, v]) => {
     txt = txt.replace(`{${k}}`, v);
   });
   return txt;
 }
+
+
+function updateTexts(lang) {
+  // Update all elements with data-i18n attribute
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    el.textContent = t(key, {}, lang);
+  });
+  
+  // Update placeholders separately
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    el.placeholder = t(key, {}, lang);
+  });
+  
+  // Update flag and label in toggle
+  const flag = lang === 'de' ? '🇩🇪' : '🇬🇧';
+  const labelKey = lang === 'de' ? 'langGerman' : 'langEnglish';
+  document.getElementById('lang-flag').textContent = flag;
+  document.getElementById('lang-label').textContent = t(labelKey, {}, lang);
+}
+
+document.querySelectorAll('.lang-menu button').forEach(button => {
+  button.addEventListener('click', () => {
+    const selectedLang = button.getAttribute('data-lang');
+    updateTexts(selectedLang);
+    
+    // Optional: close lang menu or update UI state
+    document.getElementById('lang-menu').style.display = 'none';
+  });
+});

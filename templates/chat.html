@@ -381,65 +381,171 @@
       20% { content: '.'; }
       40% { content: '..'; }
     }
+
+
+    /* Language toggle */
+    .lang-toggle {
+      position: fixed;
+      top: 2rem;
+      right: 2rem;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 25px;
+      padding: 0.75rem 1.5rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      color: white;
+    }
+
+    .lang-toggle:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .lang-menu {
+      position: absolute;
+      top: 60px;
+      right: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(15px);
+      border-radius: 15px;
+      overflow: hidden;
+      display: none;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .lang-menu button {
+      border: none;
+      background: none;
+      padding: 1rem 1.5rem;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+      color: #333;
+      font-weight: 500;
+      transition: background 0.2s ease;
+    }
+
+    .lang-menu button:hover {
+      background: rgba(102, 126, 234, 0.1);
+    }
+
   </style>
 </head>
 <body>
 
+  <!-- Language toggle -->
+<div class="lang-toggle" id="lang-toggle">
+  <span id="lang-flag" data-i18n="langGerman">🇩🇪</span> 
+  <span id="lang-label" data-i18n="langGerman">Deutsch</span> ▼
+  <div class="lang-menu" id="lang-menu">
+    <button data-lang="de" data-i18n="langGerman">🇩🇪 Deutsch</button>
+    <button data-lang="en" data-i18n="langEnglish">🇬🇧 English</button>
+  </div>
+</div>
+
+<!-- Logo remains the same -->
   <!-- Floating background bubbles -->
   <div class="floating-bubbles" id="floating-bubbles"></div>
-
   <!-- Logo -->
   <img src="https://das-orakel.eu/wp-content/uploads/2023/12/dovm_logo_black-2023.svg" 
        alt="Das Orakel von Mägdesprung Logo" 
        class="logo">
 
-  <!-- Main chat container -->
-  <div class="chat-container">
-    <!-- Chat header -->
-    <div class="chat-header">
-      <h1 class="chat-title">Frage das Orakel</h1>
-      <p class="chat-subtitle">Stelle deine Frage und erhalte Weisheit aus Mägdesprung</p>
-    </div>
+<!-- Main chat container -->
+<div class="chat-container">
+  <!-- Chat header -->
+  <div class="chat-header">
+    <h1 class="chat-title" data-i18n="chatTitle">Frage das Orakel</h1>
+    <p class="chat-subtitle" data-i18n="chatSubtitle">Stelle deine Frage und erhalte Weisheit aus Mägdesprung</p>
+  </div>
 
-    <!-- Chat messages -->
-    <div class="chat-messages" id="chat-messages">
-      {% if response %}
-        <div class="message oracle">
-          <div class="message-label">Orakel:</div>
-          <div class="message-bubble">{{ response }}</div>
-        </div>
-      {% else %}
-        <div class="empty-state">
-          Willkommen! Stelle deine erste Frage an das Orakel von Mägdesprung.
-        </div>
-      {% endif %}
-      
-      <!-- Typing indicator -->
-      <div class="typing-indicator" id="typing-indicator">
-        <div class="message-label">Orakel denkt nach<span class="typing-dots"></span></div>
+  <!-- Chat messages -->
+  <div class="chat-messages" id="chat-messages">
+    {% if response %}
+      <div class="message oracle">
+        <div class="message-label" data-i18n="oracleLabel">Orakel:</div>
+        <div class="message-bubble">{{ response }}</div>
       </div>
-    </div>
-
-    <!-- Chat input -->
-    <div class="chat-input-container">
-      <form id="chat-form" class="input-wrapper">
-        <textarea 
-          id="message-input" 
-          name="message" 
-          class="chat-textarea"
-          placeholder="Schreibe deine Frage hier..."
-          rows="2">{{ user_input if user_input else '' }}</textarea>
-        <button type="submit" class="send-button" id="send-button">
-          <span id="button-text">Fragen</span>
-        </button>
-      </form>
+    {% else %}
+      <div class="empty-state" data-i18n="emptyState">
+        Willkommen! Stelle deine erste Frage an das Orakel von Mägdesprung.
+      </div>
+    {% endif %}
+    
+    <!-- Typing indicator -->
+    <div class="typing-indicator" id="typing-indicator">
+      <div class="message-label" data-i18n="typingIndicator">
+        Orakel denkt nach<span class="typing-dots"></span>
+      </div>
     </div>
   </div>
 
-  <!-- Toast notification -->
-  <div class="toast" id="toast"></div>
+  <!-- Chat input -->
+  <div class="chat-input-container">
+    <form id="chat-form" class="input-wrapper">
+      <textarea 
+        id="message-input" 
+        name="message" 
+        class="chat-textarea"
+        placeholder="Schreibe deine Frage hier..."
+        data-i18n-placeholder="chatPlaceholder"
+        rows="2">{{ user_input if user_input else '' }}</textarea>
+      <button type="submit" class="send-button" id="send-button">
+        <span id="button-text" data-i18n="buttonText">Fragen</span>
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<script src="/translations.js"></script>
 
   <script>
+
+const elements = {
+  langToggle: document.getElementById('lang-toggle'),
+  langMenu: document.getElementById('lang-menu'),
+    langFlag: document.getElementById('lang-flag'),
+  langLabel: document.getElementById('lang-label'),
+}
+
+function updateLanguage() {
+  elements.langFlag.textContent = currentLang === 'de' ? '🇩🇪' : '🇬🇧';
+  elements.langLabel.textContent = t(currentLang === 'de' ? 'langGerman' : 'langEnglish');
+  
+}
+
+
+// Event listeners
+elements.langToggle.addEventListener('click', () => {
+  const isOpen = elements.langMenu.style.display === 'block';
+  elements.langMenu.style.display = isOpen ? 'none' : 'block';
+});
+
+elements.langMenu.addEventListener('click', (e) => {
+  if (e.target.dataset.lang) {
+    currentLang = e.target.dataset.lang;
+    localStorage.setItem('userLang', currentLang);
+    elements.langMenu.style.display = 'none';
+    updateLanguage();
+  }
+});
+
+// Close language menu when clicking outside
+document.addEventListener('click', (e) => {
+  if (!elements.langToggle.contains(e.target)) {
+    elements.langMenu.style.display = 'none';
+  }
+});
+
+
+
     // Create floating bubbles
     function createFloatingBubbles() {
       const container = document.getElementById('floating-bubbles');

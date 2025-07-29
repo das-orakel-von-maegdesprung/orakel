@@ -441,10 +441,12 @@
 
   <!-- Toast notification -->
   <div class="toast" id="toast"></div>
+ <script src="/translations.js"></script>
 
   <script>
     
     // Translations (same as before)
+     /*
     const translations = {
       de: {
         welcome: "Das Orakel von Mägdesprung",
@@ -481,6 +483,7 @@
         skipAllConfirm: "Do you want to skip all questions?"
       }
     };
+    */
 // State management
 let currentLang = localStorage.getItem('userLang') || (navigator.language.startsWith('en') ? 'en' : 'de');
 let currentQuestion = 0;
@@ -511,6 +514,7 @@ const elements = {
 };
 
 // Helper functions
+/*
 function t(key, params = {}) {
   let text = translations[currentLang][key] || key;
   Object.entries(params).forEach(([k, v]) => {
@@ -518,7 +522,7 @@ function t(key, params = {}) {
   });
   return text;
 }
-
+*/
 function showToast(message) {
   elements.toast.textContent = message;
   elements.toast.classList.add('show');
