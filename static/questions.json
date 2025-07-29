@@ -17,8 +17,8 @@
       "de": "Was ist dein Glaube?"
     },
     "options": {
-      "en": ["Christianity", "Islam", "Buddhism", "Hinduism", "Atheist", "Other"],
-      "de": ["Christentum", "Islam", "Buddhismus", "Hinduismus", "Atheist", "Andere"]
+      "en": ["Christianity", "Islam","Jewisim", "Buddhism", "Hinduism", "Atheist", "Other"],
+      "de": ["Christentum", "Islam","Judentum", "Buddhismus", "Hinduismus", "Atheist", "Andere"]
     }
   },
   {

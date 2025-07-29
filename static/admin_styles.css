@@ -1,0 +1,53 @@
+:root {
+  --primary-color: #007bff;
+  --danger-color: #dc3545;
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --bg-color: #f8f9fa;
+  --text-color: #333;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 20px;
+}
+
+h2, h3 {
+  margin-bottom: 10px;
+}
+
+a.admin-btn {
+  display: inline-block;
+  margin-bottom: 20px;
+  text-decoration: none;
+  color: var(--primary-color);
+  font-weight: bold;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.btn-danger {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+th, td {
+  padding: 12px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+th {
+  background-color: #f1f1f1;
+}
