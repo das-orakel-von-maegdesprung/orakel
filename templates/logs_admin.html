@@ -12,6 +12,26 @@
     th { background-color: #f4f4f4; }
     #search-box { margin-top: 10px; padding: 8px; width: 300px; }
     .admin-btn { display: inline-block; margin: 10px 0; padding: 8px 16px; background: #007BFF; color: white; text-decoration: none; border-radius: 4px; }
+
+    td {
+  vertical-align: top;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+
+    tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+td.email-cell {
+  white-space: nowrap;       /* Keep everything on one line */
+  max-width: 250px;          /* Limit max width */
+  overflow: hidden;          /* Hide overflow */
+  text-overflow: ellipsis;   /* Show "..." if too long */
+}
+
+
   </style>
 </head>
 <body>
@@ -64,7 +84,7 @@
 
       tbody.innerHTML = filteredLogs.map(log => `
         <tr>
-          <td>${log.email}</td>
+          <td class="email-cell" title="${log.email}">${log.email}</td>
           <td>${log.message}</td>
           <td>${log.response}</td>
           <td>${log.timestamp}</td>
