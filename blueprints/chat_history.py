@@ -1,4 +1,4 @@
-from utils.database import get_chat_collection
+from utils.database import get_chat_history_collection
 from datetime import datetime
 from flask import jsonify, Blueprint
 from bson.objectid import ObjectId
@@ -27,9 +27,18 @@ logging_bp = Blueprint("logging", __name__)
 
 #     return jsonify(formatted_logs)
 
+def get_last_chats(email, limit=5):
+    chats = (
+        get_chat_history_collection()
+        .find({"email": email})
+        .sort("timestamp", -1)
+        .limit(limit)
+    )
+    return [{"message": c["message"], "response": c["response"]} for c in chats]
+
 
 def log_chat_to_db(user_message, ai_response,email):
-    get_chat_collection().insert_one({
+    get_chat_history_collection().insert_one({
         "message": user_message,
         "response": ai_response,
         "email": email,

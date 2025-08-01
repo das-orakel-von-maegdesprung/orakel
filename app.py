@@ -7,7 +7,7 @@ import os
 from utils.globals import Role
 load_dotenv()
 
-from utils.database import get_chat_collection
+from utils.database import get_chat_history_collection
 
 from blueprints.auth import auth_bp
 from blueprints.questions import questions_bp
@@ -103,7 +103,7 @@ def logs_admin():
 @app.route('/api/chat_logs')
 @admin_required
 def get_chat_logs_api():
-    chat_collection = get_chat_collection()
+    chat_collection = get_chat_history_collection()
     logs = list(chat_collection.find().sort("timestamp", -1))
 
     formatted_logs = []

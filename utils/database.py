@@ -52,7 +52,7 @@ def get_collection(name) -> pymongo.collection.Collection:
 def get_text_collection():
     return get_collection("get_text_collection")
 
-def get_chat_collection() -> pymongo.collection.Collection:
+def get_chat_history_collection() -> pymongo.collection.Collection:
     return get_collection("chat_logs")
 
 def get_users_collection():

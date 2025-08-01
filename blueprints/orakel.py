@@ -1,10 +1,8 @@
 from flask import session, Blueprint, jsonify, request
 from blueprints.auth import find_valid_session_token
 from utils.database import get_users_collection
-# from utils.database import log_chat_to_db
-from blueprints.logging import log_chat_to_db
+from blueprints.chat_history import log_chat_to_db
 from utils.ai import GroqChat
-import json
 
 orakel_bp = Blueprint("orakel", __name__)
 
@@ -36,44 +34,32 @@ def extract_user_input():
     return data.get("message", "")
 
 
-# --- Step 4: Decide if LLM Needs a Book ---
-def check_if_needs_book(user_input):
-    decision_prompt = f"""
-Given the following user message, determine if it can be answered without consulting an external book or source.
-
-Respond only in JSON format like this:
-{{"needs_book": true}} or {{"needs_book": false}}
-
-User message:
-\"\"\"{user_input}\"\"\"
-"""
-    decision_response = GroqChat.response_text(decision_prompt)
-
-    try:
-        decision_json = json.loads(decision_response)
-        return decision_json.get("needs_book", False), None
-    except json.JSONDecodeError:
-        return False, jsonify({
-            "error": "Invalid response from AI decision phase",
-            "raw": decision_response
-        }), 500
 
 
-# --- Step 5: Build Prompt with Profile ---
-def build_full_prompt(user_input, answers, language):
+
+
+def build_full_prompt(user_input, answers, language, chat_history):
     with open("orakel_base_prompt.txt", "r", encoding="utf-8") as f:
         base_prompt = f.read()
 
+    history_text = "\n".join(
+        [f"Nutzer Nachricht: {chat['message']}\nAntwort: {chat['response']}" for chat in reversed(chat_history)]
+    )
+
     return f"""{base_prompt}
 
-Die Antworten des Nutzers:
+Die Antworten des Nutzers auf den Fragebogen:
 {answers}
 
-Antworte immer in der sprache des nuzers: {language}
+Letzte Unterhaltungen:
+{history_text}
 
-Nutzer Nachicht: {user_input}
+Webseite ist in der Sprache: {language}, aber wenn der Nutzer eine andere Muttersprache angegeben hat oder in einer anderen Sprache spricht, passe dich an.
 
+Nutzer Nachricht: {user_input}
 """
+
+
 
 
 # --- Step 6: Generate Final AI Response ---
@@ -81,8 +67,8 @@ def generate_response(prompt):
     return GroqChat.response_text(prompt)
 
 
+from blueprints.chat_history import get_last_chats  # or wherever it's defined
 
-# --- Main Route ---
 @orakel_bp.route("/orakel", methods=["POST"])
 def orakel():
     try:
@@ -97,24 +83,20 @@ def orakel():
         # Step 3: Get user input
         user_input = extract_user_input()
 
-        # Step 4: Ask if book is needed
-        needs_book, error_response = check_if_needs_book(user_input)
-        if error_response:
-            return error_response
-        if needs_book:
-            return jsonify({"response": "book"})
+        # Step 4: Get recent chat history
+        chat_history = get_last_chats(email, limit=5)
 
         # Step 5: Build full prompt
-        full_prompt = build_full_prompt(user_input, answers, language)
+        full_prompt = build_full_prompt(user_input, answers, language, chat_history)
 
         # Step 6: Generate response
         response = generate_response(full_prompt)
 
         # Step 7: Log chat
-        log_chat_to_db(user_input, response,email)
+        log_chat_to_db(user_input, response, email)
 
         # Step 8: Return final response
-        return jsonify({"response": response, "prompt": full_prompt})
+        return jsonify({"response": response})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
