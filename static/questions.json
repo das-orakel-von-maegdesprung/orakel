@@ -31,8 +31,8 @@
       "de": "Was ist dein Glaube?"
     },
     "answers": {
-      "en": [ "skip", "Christianity", "Islam", "Buddhism", "Hinduism", "Atheism", "Judism", "Sufism", "Schamanism", "Wicka", "Natural religion", "Agnosticism", "pagan",   ],
-      "de": [ "überspringen", "Christentum", "Islam", "Buddhismus", "Hinduismus", "Atheismus", "Judentum", "Sufismus", Schamanismus", "Naturgeligion", "Agnostik", "Wicka",  ]
+      "en": [ "skip", "Christianity", "Islam", "Buddhism", "Hinduism", "Atheism", "Judism", "Sufism", "Schamanism", "Wicka", "Natural religion", "Agnosticism", "pagan"],
+      "de": [ "überspringen", "Christentum", "Islam", "Buddhismus", "Hinduismus", "Atheismus", "Judentum", "Sufismus", "Schamanismus", "Naturgeligion", "Agnostik", "Wicka"]
     },
     "other": true
   },
