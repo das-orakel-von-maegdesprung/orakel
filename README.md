@@ -1,10 +1,10 @@
-Das Orakel von Mägdesprung
-A contemporary oracle rooted in ancient wisdom, myth, and industrial heritage.
+Das Orakel von Mägdesprung (The Oracle of Mägdesprung, Harz) 
+A contemporary oracle rooted in ancient wisdom, myth and industrial heritage.
 
 🌿 What is it?
-Das Orakel von Mägdesprung is a large-scale, interactive landscape art installation located on the grounds of a former ironworks in Mägdesprung, in the Harz Mountains (Germany). Inspired by ancient local cult places and international places of wisdom, like Oracle of Delphi. Das Orakel von Mägdesprung invites visitors to ask meaningful personal questions and reflect deeply.
+Das Orakel von Mägdesprung is a large-scale, interactive landscape art installation located on the grounds of a former ironworks in Mägdesprung, in the Harz Mountains (Germany). Inspired by ancient local cult places and international places of wisdom, like the Oracle of Delphi, Das Orakel von Mägdesprung invites visitors to ask meaningful personal questions and reflect deeply.
 
-This modern oracle is neither esoteric nor religious—it’s a philosophical, participatory experience blending art, nature, history and mythology.
+This modern oracle is neither esoteric nor religious — it’s a philosophical, participatory experience blending art, nature, history and mythology.
 
 🌀 Structure
 The Oracle consists of two main areas:
