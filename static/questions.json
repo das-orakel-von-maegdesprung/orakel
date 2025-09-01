@@ -2,7 +2,7 @@
   {
     "id": "consent_to_answer",
     "text": {
-      "en": "Do you want to answer some questions about yourself? It would greatly help the oracle in its answers if you answered a few questions yourself beforehand. If you would like to do this, click "YES." If you only want to skip answering certain questions, simply skip them."
+      "en": "Do you want to answer some questions about yourself? It would greatly help the oracle in its answers if you answered a few questions yourself beforehand. If you would like to do this, click „YES“. If you only want to skip answering certain questions, simply skip them."
       "de": "Möchtest du einige Fragen über dich beantworten? Es würde dem Orakel bei seinen Antworten sehr helfen, wenn du vorab selbst ein paar Fragen beantwortest. \n Wenn du dies tun möchtest klicke „JA“. Wenn du nur einzelne Fragen nicht beantworten möchtest, lass diese einfach aus.  "
     },
     "answers": {
